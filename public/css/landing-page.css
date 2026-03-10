@@ -1,0 +1,365 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #4C2B15;
+}
+
+.navbar {
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+}
+
+.hero {
+    height: 100vh;
+    background: url('img/hero.jpg') center/cover no-repeat;
+    position: relative;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(60,30,10,0.65);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    line-height: 1.3;
+}
+
+.btn-active-light:active,
+.btn-active-light:focus {
+    transform: scale(0.97);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.35);
+}
+
+.btn-gold:hover {
+    background-color: #b68a3f;
+    color: white;
+}
+
+.btn-outline-gold:hover {
+    background-color: #C59D5F;
+    color: white;
+}
+
+.btn-gold {
+    background-color: #e6c27a;
+    color: #000;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 12px 30px;
+}
+
+.btn-outline-gold {
+    border: 2px solid #e6c27a;
+    color: #e6c27a;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 12px 30px;
+}
+
+.service-card {
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    color: #fff;
+    height: 200px;
+}
+
+.service-card img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+}
+
+.service-title {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+}
+
+.partner-logo {
+    height: 120px;
+    border: 2px dashed #ddd;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-weight: 500;
+    background: #f9f9f9;
+    transition: all .3s ease;
+}
+
+.partner-logo:hover {
+    background: #f1f1f1;
+    transform: translateY(-5px);
+}
+
+.transition-slide {
+    transition: transform .5s ease;
+}
+
+.package-card {
+    background: linear-gradient(160deg, #5b2f15, #32180b);
+    border-radius: 25px;
+    padding: 35px;
+    width: 450px;
+    margin: 0 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.package-content {
+    flex-grow: 1;
+}
+
+.package-title {
+    min-height: 60px; /* supaya rata meskipun beda panjang */
+}
+
+.package-price {
+    font-size: 26px;
+    font-weight: bold;
+    color: #f1b521;
+}
+
+.badge-days {
+    width: 70px;
+    height: 70px;
+    background: #2a140a;
+    border-radius: 15px;
+    margin: 0 auto 15px auto;
+    padding-top: 8px;
+}
+
+.nav-btn {
+    background: #e6c27a;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+}
+/* ===================== */
+/* HERO ANIMATION */
+/* ===================== */
+
+.fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 1.5s ease forwards;
+}
+
+.slide-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    animation: slideLeft 1.5s ease forwards;
+    animation-delay: .6s;
+}
+
+.slide-right {
+    opacity: 0;
+    transform: translateX(50px);
+    animation: slideRight 1.5s ease forwards;
+    animation-delay: .6s;
+}
+
+@keyframes fadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideLeft {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ===================== */
+/* SERVICE ANIMATION */
+/* ===================== */
+
+.fade-up-service {
+    opacity: 0;
+    transform: translateY(60px);
+    animation: fadeUpService 1s ease forwards;
+}
+
+.delay-1 { animation-delay: .3s; }
+.delay-2 { animation-delay: .6s; }
+.delay-3 { animation-delay: .9s; }
+
+@keyframes fadeUpService {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.custom-brown-modal {
+    background: rgba(92, 51, 23, 0.85); /* coklat transparan */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    color: #fff;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+}
+
+.custom-brown-modal .modal-header {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.custom-brown-modal .modal-body {
+    color: #fff;
+}
+
+.custom-brown-modal .btn-close {
+    filter: invert(1); /* biar tombol close jadi putih */
+}
+
+.testimoni-card {
+    background: #f3e7d2;
+    color: #4C2B15;
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.testimoni-stars {
+    color: #f1b521;
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.testimoni-text {
+    font-style: italic;
+    line-height: 1.7;
+}
+
+.testimoni-name {
+    margin-top: 15px;
+    font-weight: 600;
+}
+
+.galeri-item {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    transition: transform 0.3s ease;
+    background: #fff;
+}
+
+.galeri-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.galeri-large {
+    height: 100%;
+}
+
+.galeri-large img {
+    height: 100%;
+}
+
+/* Hover effect */
+.galeri-item:hover {
+    transform: scale(1.03);
+}
+
+.footer-section {
+    background: #e6dfc8;
+}
+
+.footer-relative {
+    min-height: 260px;
+}
+
+/* Semua block width mengikuti konten */
+.footer-block {
+    position: absolute;
+    max-width: 320px;
+}
+
+/* LEFT */
+.footer-left {
+    left: 0;
+    top: 0;
+}
+
+/* CENTER – benar-benar posisi tengah container */
+.footer-center {
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+}
+
+/* RIGHT */
+.footer-right {
+    right: 0;
+    top: 0;
+}
+
+/* Typography */
+.footer-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.footer-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.text-brown {
+    color: #5b2f15;
+}
+
+/* Social */
+.social-group {
+    display: flex;
+    gap: 8px;
+}
+
+.social-box {
+    width: 36px;
+    height: 36px;
+    background: #5b2f15;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    text-decoration: none;
+}
