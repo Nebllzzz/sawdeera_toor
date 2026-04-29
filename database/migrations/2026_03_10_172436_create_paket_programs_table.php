@@ -11,9 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('paket_programs', function (Blueprint $table) {
+        Schema::create('paket_program', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+
+            $table->foreignId('paket_id')
+                ->constrained('paket_umrah')
+                ->cascadeOnDelete();
+
+            $table->integer('hari');
+
+            $table->text('deskripsi');
         });
     }
 

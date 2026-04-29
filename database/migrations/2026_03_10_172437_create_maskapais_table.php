@@ -11,8 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('maskapais', function (Blueprint $table) {
+        Schema::create('maskapai', function (Blueprint $table) {
             $table->id();
+
+            $table->string('airline_code',10);
+            $table->string('airline_icao_code',10)->nullable();
+
+            $table->string('nama');
+            $table->string('asal_negara');
+
+            $table->boolean('is_active')->default(true);
+
             $table->timestamps();
         });
     }

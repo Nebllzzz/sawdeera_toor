@@ -15,6 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('css/landing-page.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
 </head>
 <body>
 
@@ -40,7 +41,7 @@
                     <li class="nav-item"><a class="nav-link text-dark fw-medium" href="#kontak">Kontak</a></li>
                 </ul>
 
-                <a href="#" class="btn px-4"
+                <a href="/login" class="btn px-4"
                 style="background:#e6c27a; border-radius:50px; font-weight:600;">
                     Login
                 </a>
@@ -100,7 +101,7 @@
                         <div class="service-title">Umrah</div>
                     </div>
                 </div>
-            
+
                 <div class="col-md-4">
                     <div class="service-card fade-up-service delay-2">
                         <img src="{{ asset('img/thumb2.jpg') }}" class="w-100">
@@ -108,7 +109,7 @@
                         <div class="service-title">Wedding Umrah</div>
                     </div>
                 </div>
-            
+
                 <div class="col-md-4">
                     <div class="service-card fade-up-service delay-3">
                         <img src="{{ asset('img/thumb3.jpg') }}" class="w-100">
@@ -116,7 +117,7 @@
                         <div class="service-title">Wisata Thaif</div>
                     </div>
                 </div>
-            
+
             </div>
 
         </div>
@@ -132,7 +133,7 @@
 
             <hr style="width:300px; margin:0 auto 30px auto; border:1px solid #e6c27a;">
 
-            <h3 class="mb-4" 
+            <h3 class="mb-4"
                 style="font-family:'Playfair Display', serif;">
                 Sawdeera Tour & Travel
             </h3>
@@ -158,7 +159,7 @@
 
             <hr style="width:600px; margin:0 auto 30px auto; border:1px solid #e6c27a;">
 
-            <h3 class="mb-5" 
+            <h3 class="mb-5"
                 style="font-family:'Playfair Display', serif;">
                 Dipercaya Oleh Berbagai Institusi & Partner
             </h3>
@@ -206,28 +207,19 @@
     </section>
 
     <!-- Jenis Layanan Section -->
-    <section class="py-5 text-white" id="jenis-layanan">
+    <section class="py-5 text-white">
         <div class="container text-center">
 
             <h3 class="text-uppercase mb-3" style="letter-spacing:2px; opacity:.8;">
-                Jenis Layanan Tersedia
+                Jenis Paket Umrah
             </h3>
 
-            <hr style="width:450px; margin:0 auto 30px auto; border:1px solid #e6c27a;">
+            <hr style="width:380px; margin:0 auto 30px auto; border:1px solid #e6c27a;">
 
-            <div class="position-relative d-flex justify-content-center align-items-center">
+            <div id="paketContainer" class="d-flex flex-wrap justify-content-center"></div>
 
-                <!-- Prev -->
-                <button id="prevBtn" class="nav-btn me-4">&#10094;</button>
-
-                <!-- Wrapper -->
-                <div class="overflow-hidden" style="width: 2300px;">
-                    <div id="paketContainer" class="d-flex transition-slide"></div>
-                </div>
-
-                <!-- Next -->
-                <button id="nextBtn" class="nav-btn ms-4">&#10095;</button>
-
+            <div class="mt-5">
+                <a href="/paket" class="btn btn-sawdeera1 w-25">Selengkapnya</a>
             </div>
 
         </div>
@@ -319,22 +311,22 @@
     {{-- Kontak Section --}}
     <section class="footer-section py-5" id="kontak">
         <div class="container position-relative footer-relative">
-    
+
             <!-- LEFT -->
             <div class="footer-block footer-left">
                 <div class="d-flex align-items-center mb-3">
                     <img src="{{ asset('img/logo.png') }}" width="60" class="me-2">
                     <h5 class="mb-0 fw-bold text-brown">Sawdeera</h5>
                 </div>
-    
+
                 <p class="footer-text">
                     Sawdeera adalah biro perjalanan ibadah yang berkomitmen memberikan layanan profesional
                     untuk perjalanan Umrah dan Haji. Kami menghadirkan pengalaman spiritual yang aman,
                     nyaman, dan bermakna bersama tim pembimbing ibadah yang berpengalaman.
                 </p>
             </div>
-    
-    
+
+
             <!-- CENTER (Alamat) -->
             <div class="footer-block footer-center">
                 <h6 class="footer-title">Alamat</h6>
@@ -342,35 +334,35 @@
                     Jl. Kp. Tukang Kajang, RT.25/RW.12, Bojong Renged,<br>
                     Kec. Teluknaga, Tangerang
                 </p>
-    
+
                 <h6 class="footer-title mt-3">Kontak</h6>
                 <p class="footer-text mb-1">081287234572</p>
                 <p class="footer-text">info@sawdeera.com</p>
             </div>
-    
-    
+
+
             <!-- RIGHT -->
             <div class="footer-block footer-right">
                 <h6 class="footer-title">Social Media</h6>
-    
+
                 <div class="social-group mb-3">
                     <a href="#" class="social-box">
                         <i class="bi bi-facebook"></i>
                     </a>
-                
+
                     <a href="#" class="social-box">
                         <i class="bi bi-twitter-x"></i>
                     </a>
-                
+
                     <a href="#" class="social-box">
                         <i class="bi bi-tiktok"></i>
                     </a>
-                
+
                     <a href="#" class="social-box">
                         <i class="bi bi-instagram"></i>
                     </a>
                 </div>
-    
+
                 <h6 class="footer-title">Layanan Lainnya</h6>
                 <p class="footer-text mb-0">
                     Umrah<br>
@@ -379,7 +371,7 @@
                     Syarat & Ketentuan
                 </p>
             </div>
-    
+
         </div>
     </section>
 {{-- End Content --}}
@@ -397,15 +389,23 @@
             <div class="modal-body">
 
                 <p><strong>Durasi:</strong> <span id="modalHari"></span></p>
-                <p><strong>Maskapai:</strong> <span id="modalMaskapai"></span></p>
                 <p><strong>Hotel Makkah:</strong> <span id="modalHotelMakkah"></span></p>
                 <p><strong>Hotel Madinah:</strong> <span id="modalHotelMadinah"></span></p>
-                <p><strong>Keberangkatan:</strong> <span id="modalKeberangkatan"></span></p>
 
                 <hr>
 
                 <h6 class="fw-bold">Fasilitas:</h6>
                 <ul id="modalFasilitas"></ul>
+
+                <hr>
+
+                <h6 class="fw-bold">Program:</h6>
+                <ul id="modalProgram"></ul>
+
+                <hr>
+
+                <h6 class="fw-bold">Jadwal Keberangkatan Yang Tersedia:</h6>
+                <div id="modalKeberangkatanList"></div>
 
                 <hr>
 
@@ -420,273 +420,132 @@
 
 
 {{-- Script --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-
-    const paketData = [
-        {
-            hari:12,
-            label:"SIRAH",
-            nama:"UMRAH SIRAH NABAWIYAH THAIF",
-            pax:30,
-            maskapai:"Garuda Indonesia",
-            harga:"Rp34.900.000,-",
-
-            hotelMakkah:"Swissotel Makkah",
-            hotelMadinah:"Anwar Al Madinah Mövenpick",
-            keberangkatan:"10 Oktober 2026",
-            fasilitas:[
-                "Tiket Pesawat PP",
-                "Visa Umrah",
-                "Hotel Bintang 5",
-                "Makan 3x sehari",
-                "Bus AC Full Trip",
-                "Tour Thaif",
-                "Pembimbing Ustadz",
-                "Air Zamzam 5L"
-            ]
-        },
-        {
-            hari:9,
-            label:"WEDDING",
-            nama:"UMRAH + WEDDING DI MEKKAH",
-            pax:25,
-            maskapai:"Saudi Airlines",
-            harga:"Rp33.900.000,-",
-
-            hotelMakkah:"Pullman Zamzam Makkah",
-            hotelMadinah:"Al Aqeeq Madinah",
-            keberangkatan:"15 November 2026",
-            fasilitas:[
-                "Tiket Pesawat PP",
-                "Visa Umrah",
-                "Hotel Bintang 5",
-                "Dokumentasi Wedding",
-                "Makeup & Busana Wedding",
-                "Makan 3x sehari",
-                "Pembimbing Ustadz",
-                "Air Zamzam 5L"
-            ]
-        },
-        {
-            hari:9,
-            label:"THAIF",
-            nama:"UMRAH WISATA THAIF",
-            pax:20,
-            maskapai:"Lion Air",
-            harga:"Rp35.900.000,-",
-
-            hotelMakkah:"Hilton Suites Makkah",
-            hotelMadinah:"Saja Al Madinah",
-            keberangkatan:"5 Desember 2026",
-            fasilitas:[
-                "Tiket Pesawat PP",
-                "Visa Umrah",
-                "Hotel Bintang 4",
-                "Makan 3x sehari",
-                "Tour Thaif Full Day",
-                "City Tour Makkah & Madinah",
-                "Pembimbing Ibadah"
-            ]
-        },
-        {
-            hari:9,
-            label:"REGULER",
-            nama:"UMRAH REGULER EKONOMI",
-            pax:40,
-            maskapai:"Emirates",
-            harga:"Rp31.500.000,-",
-
-            hotelMakkah:"Emaar Grand Hotel",
-            hotelMadinah:"Odst Al Madinah",
-            keberangkatan:"12 Januari 2027",
-            fasilitas:[
-                "Tiket Pesawat PP",
-                "Visa Umrah",
-                "Hotel Bintang 4",
-                "Makan 2x sehari",
-                "Bus AC",
-                "Manasik 2x",
-                "Air Zamzam 5L"
-            ]
-        },
-        {
-            hari:12,
-            label:"VIP",
-            nama:"UMRAH VIP HOTEL 5★ VIEW KA'BAH",
-            pax:15,
-            maskapai:"Qatar Airways",
-            harga:"Rp45.000.000,-",
-
-            hotelMakkah:"Fairmont Clock Tower",
-            hotelMadinah:"Madinah Hilton",
-            keberangkatan:"20 Januari 2027",
-            fasilitas:[
-                "Tiket Pesawat PP Direct",
-                "Visa Umrah",
-                "Hotel Bintang 5 View Ka'bah",
-                "Makan Buffet 3x sehari",
-                "Private Bus",
-                "Pembimbing Eksklusif",
-                "Handling VIP"
-            ]
-        },
-        {
-            hari:15,
-            label:"RAMADHAN",
-            nama:"UMRAH RAMADHAN 15 HARI",
-            pax:35,
-            maskapai:"Etihad Airways",
-            harga:"Rp49.000.000,-",
-
-            hotelMakkah:"Swissotel Maqam",
-            hotelMadinah:"Anwar Al Madinah",
-            keberangkatan:"5 Ramadhan 1448 H",
-            fasilitas:[
-                "Tiket Pesawat PP",
-                "Visa Umrah",
-                "Hotel Bintang 5",
-                "Sahur & Berbuka",
-                "I'tikaf 10 Hari Terakhir",
-                "Kajian Ramadhan",
-                "Air Zamzam 5L"
-            ]
-        },
-        {
-            hari:13,
-            label:"PLUS TURKI",
-            nama:"UMRAH PLUS TURKI 13 HARI",
-            pax:28,
-            maskapai:"Turkish Airlines",
-            harga:"Rp52.000.000,-",
-
-            hotelMakkah:"Pullman Zamzam",
-            hotelMadinah:"Sofitel Madinah",
-            keberangkatan:"15 Februari 2027",
-            fasilitas:[
-                "Tiket Pesawat PP",
-                "Visa Umrah",
-                "Hotel Bintang 5",
-                "City Tour Istanbul",
-                "Blue Mosque & Hagia Sophia",
-                "Makan 3x sehari",
-                "Tour Leader Indonesia"
-            ]
-        },
-        {
-            hari:10,
-            label:"PRIVATE",
-            nama:"UMRAH PRIVATE FAMILY",
-            pax:10,
-            maskapai:"Garuda Indonesia",
-            harga:"Rp55.000.000,-",
-
-            hotelMakkah:"Hilton Convention Makkah",
-            hotelMadinah:"Intercontinental Madinah",
-            keberangkatan:"Custom Schedule",
-            fasilitas:[
-                "Tiket Pesawat PP Flexible",
-                "Visa Umrah",
-                "Hotel Bintang 5",
-                "Private Bus & Guide",
-                "Jadwal Fleksibel",
-                "Manasik Private",
-                "Air Zamzam 5L"
-            ]
-        }
-    ];
-    
     function loadPaket() {
-        const container = document.getElementById("paketContainer");
-        container.innerHTML = "";
-    
-        paketData.forEach((paket, index) => {
-            container.innerHTML += `
-                <div class="package-card text-white">
 
-                    <div class="package-content">
+        $.get('/paket/home', function(res) {
 
-                        <div class="badge-days">
-                            <h4>${paket.hari}</h4>
-                            <small>HARI</small>
+            let html = "";
+
+            res.forEach((paket) => {
+
+                html += `
+                    <div class="package-card text-white">
+
+                        <div class="package-content">
+
+                            <div class="badge-days">
+                                <h4>${paket.durasi}</h4>
+                                <small>HARI</small>
+                            </div>
+
+                            <h6 class="text-warning mb-3">
+                                ${paket.nama_paket.split(' ')[0] ?? 'PAKET'}
+                            </h6>
+
+                            <h5 class="fw-bold mb-3 package-title">
+                                ${paket.nama_paket}
+                            </h5>
+
+                            <p>Hotel Makkah<br/><i>${paket.hotel_makkah?.nama ?? '-'}</i></p>
+                            <hr/>
+                            <p>Hotel Madinah<br/><i>${paket.hotel_madinah?.nama ?? '-'}</i></p>
+
                         </div>
 
-                        <h6 class="text-warning mb-3">${paket.label}</h6>
+                        <div>
+                            <div class="package-price my-3">
+                                Rp ${parseInt(paket.harga).toLocaleString()}
+                            </div>
 
-                        <h5 class="fw-bold mb-3 package-title">
-                            ${paket.nama}
-                        </h5>
-
-                        <p>Available Pax: ${paket.pax} Pax</p>
-                        <p>Maskapai: ${paket.maskapai}</p>
-
-                    </div>
-
-                    <div>
-                        <div class="package-price my-3">
-                            ${paket.harga}
+                            <button class="btn w-100"
+                                    style="background-color:#FFFBDE;"
+                                    onclick="showDetail(${paket.id})">
+                                Lihat Detail
+                            </button>
                         </div>
 
-                        <button class="btn w-100"
-                                style="background-color:#FFFBDE;"
-                                onclick="showDetail(${index})">
-                            Lihat Detail
-                        </button>
                     </div>
+                `;
+            });
 
-                </div>
-            `;
+            $("#paketContainer").html(html);
         });
     }
-    
-    let currentIndex = 0;
-    const visibleItems = 2;
-    
-    document.getElementById("nextBtn").onclick = function() {
-        if (currentIndex < paketData.length - visibleItems) {
-            currentIndex++;
-            updateSlide();
-        }
-    };
-    
-    document.getElementById("prevBtn").onclick = function() {
-        if (currentIndex > 0) {
-            currentIndex--;
-            updateSlide();
-        }
-    };
-    
-    function updateSlide() {
-        const container = document.getElementById("paketContainer");
-        const cardWidth = document.querySelector(".package-card").offsetWidth + 30;
-        container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
-    }
-    
+
     loadPaket();
 
-    function showDetail(index) {
-        const paket = paketData[index];
+    function showDetail(id) {
 
-        document.getElementById("modalTitle").innerText = paket.nama;
-        document.getElementById("modalHari").innerText = paket.hari + " Hari";
-        document.getElementById("modalMaskapai").innerText = paket.maskapai;
-        document.getElementById("modalHotelMakkah").innerText = paket.hotelMakkah;
-        document.getElementById("modalHotelMadinah").innerText = paket.hotelMadinah;
-        document.getElementById("modalKeberangkatan").innerText = paket.keberangkatan;
-        document.getElementById("modalHarga").innerText = paket.harga;
+        $.get('/paket/detail/' + id, function(res) {
 
-        const fasilitasList = document.getElementById("modalFasilitas");
-        fasilitasList.innerHTML = "";
+            let paket = res.paket;
+            let keberangkatan = res.keberangkatan;
+            console.log(keberangkatan);
 
-        paket.fasilitas.forEach(item => {
-            fasilitasList.innerHTML += `<li>${item}</li>`;
+
+            $("#modalTitle").text(paket.nama_paket);
+            $("#modalHari").text(paket.durasi + " Hari");
+
+            $("#modalHotelMakkah").text(paket.hotel_makkah.nama);
+            $("#modalHotelMadinah").text(paket.hotel_madinah.nama);
+
+            $("#modalHarga").text("Rp " + parseInt(paket.harga).toLocaleString());
+
+            // ✅ fasilitas
+            let fasilitasHtml = "";
+            paket.fasilitas.forEach(f => {
+                fasilitasHtml += `<li>${f.nama}</li>`;
+            });
+            $("#modalFasilitas").html(fasilitasHtml);
+
+            // ✅ program
+            let programHtml = "";
+            paket.program.forEach(p => {
+                programHtml += `<li>Hari ${p.hari} - ${p.deskripsi}</li>`;
+            });
+            $("#modalProgram").html(programHtml);
+
+            // ✅ keberangkatan (ini yang kaya gambar 🔥)
+            let keberangkatanHtml = "";
+
+            keberangkatan.forEach(k => {
+
+                keberangkatanHtml += `
+                <div class="mb-4 p-3 border rounded">
+
+                    <p><strong>Durasi:</strong> ${paket.durasi} Hari</p>
+
+                    <p><strong>Tanggal Berangkat:</strong> ${k.tanggal_keberangkatan}</p>
+                    <p><strong>Tanggal Pulang:</strong> ${k.tanggal_pulang}</p>
+
+                    <p><strong>Maskapai Berangkat:</strong> ${k.maskapai_berangkat.nama}</p>
+                    <p><strong>Maskapai Pulang:</strong> ${k.maskapai_pulang.nama}</p>
+
+                    <hr>
+
+                    <p><strong>Jam Berangkat:</strong> ${k.jam_berangkat}</p>
+                    <p><strong>Jam Tiba:</strong> ${k.jam_tiba}</p>
+
+                    <p><strong>Tour Leader:</strong>
+                        ${k.leader
+                            ? `${k.leader.nama} (${k.leader.no_telepon ?? '-'} / ${k.leader.email ?? '-'})`
+                            : '-'}
+                    </p>
+
+                </div>
+                `;
+            });
+
+            $("#modalKeberangkatanList").html(keberangkatanHtml);
+
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
         });
-
-        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-        modal.show();
     }
-    
+
 </script>
 
 <script>
@@ -711,18 +570,18 @@
             rating: 4
         }
     ];
-    
+
     let currentTestimoni = 0;
-    
+
     function loadTestimoni() {
         const data = testimoniData[currentTestimoni];
         const container = document.getElementById("testimoniContainer");
-    
+
         let stars = "";
         for (let i = 0; i < data.rating; i++) {
             stars += "★";
         }
-    
+
         container.innerHTML = `
             <div class="testimoni-card">
                 <div class="testimoni-stars">${stars}</div>
@@ -735,7 +594,7 @@
             </div>
         `;
     }
-    
+
     // Next
     document.getElementById("nextTestimoni").onclick = function () {
         if (currentTestimoni < testimoniData.length - 1) {
@@ -745,7 +604,7 @@
         }
         loadTestimoni();
     };
-    
+
     // Prev
     document.getElementById("prevTestimoni").onclick = function () {
         if (currentTestimoni > 0) {
@@ -755,10 +614,10 @@
         }
         loadTestimoni();
     };
-    
+
     // Load pertama
     loadTestimoni();
-    
+
 </script>
 {{-- End Script --}}
 

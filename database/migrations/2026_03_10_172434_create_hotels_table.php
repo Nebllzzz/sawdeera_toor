@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('hotels', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');
+            $table->string('lokasi'); // mekkah / madinah
+            $table->integer('bintang');
+            $table->enum('tipe_kamar', ['double','triple','quad']);
             $table->timestamps();
         });
     }
@@ -22,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('hotels');
+        Schema::enableForeignKeyConstraints();
     }
 };

@@ -11,8 +11,37 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dokumen_jemaahs', function (Blueprint $table) {
+        Schema::create('dokumen_jemaah', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('jemaah_id')
+                ->constrained('data_jemaah')
+                ->cascadeOnDelete();
+
+            $table->enum('jenis_dokumen', [
+                'ktp',
+                'paspor',
+                'visa',
+                'vaksin'
+            ]);
+
+            $table->string('file_path');
+
+            $table->enum('status', [
+                'diproses',
+                'diverifikasi',
+                'ditolak'
+            ])->default('diproses');
+
+            $table->text('keterangan_penolakan')->nullable();
+
+            $table->foreignId('verified_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->timestamp('verified_at')->nullable();
+
             $table->timestamps();
         });
     }

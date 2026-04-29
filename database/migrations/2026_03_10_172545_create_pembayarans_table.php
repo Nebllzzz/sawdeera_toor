@@ -11,8 +11,44 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pembayarans', function (Blueprint $table) {
+        Schema::create('pembayaran', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('jemaah_id')
+                ->constrained('data_jemaah')
+                ->cascadeOnDelete();
+
+            $table->foreignId('keberangkatan_id')
+                ->constrained('keberangkatan')
+                ->cascadeOnDelete();
+
+            $table->decimal('jumlah',15,2);
+
+            $table->enum('jenis_pembayaran',[
+                'dp',
+                'cicilan',
+                'pelunasan'
+            ]);
+
+            $table->string('metode_pembayaran');
+
+            $table->string('bukti_pembayaran');
+
+            $table->enum('status',[
+                'diproses',
+                'diverifikasi',
+                'ditolak'
+            ])->default('diproses');
+
+            $table->text('keterangan_penolakan')->nullable();
+
+            $table->foreignId('verified_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->timestamp('verified_at')->nullable();
+
             $table->timestamps();
         });
     }

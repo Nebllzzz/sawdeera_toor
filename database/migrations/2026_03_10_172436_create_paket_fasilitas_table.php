@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('paket_fasilitas', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+
+            $table->foreignId('paket_id')
+                ->constrained('paket_umrah')
+                ->cascadeOnDelete();
+
+            $table->string('nama');
         });
     }
 

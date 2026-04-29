@@ -13,6 +13,16 @@ return new class extends Migration
     {
         Schema::create('tour_leaders', function (Blueprint $table) {
             $table->id();
+
+            $table->string('nama');
+            $table->string('no_telepon');
+
+            $table->string('email')->nullable();
+
+            $table->text('alamat');
+
+            $table->enum('jenis_kelamin',['laki_laki','perempuan']);
+
             $table->timestamps();
         });
     }

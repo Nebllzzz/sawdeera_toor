@@ -11,8 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('paket_umrahs', function (Blueprint $table) {
+        Schema::create('paket_umrah', function (Blueprint $table) {
             $table->id();
+
+            $table->string('nama_paket');
+
+            $table->integer('durasi');
+
+            $table->foreignId('hotel_makkah_id')
+                ->constrained('hotels')
+                ->cascadeOnDelete();
+
+            $table->foreignId('hotel_madinah_id')
+                ->constrained('hotels')
+                ->cascadeOnDelete();
+
+            $table->decimal('harga', 15, 2);
+
+            $table->text('deskripsi')->nullable();
+
+            $table->boolean('is_active')->default(true);
+
             $table->timestamps();
         });
     }

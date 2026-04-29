@@ -1,0 +1,90 @@
+/* =========================
+   SAWDEERA BUTTON 1 (GOLD)
+========================= */
+
+.btn-sawdeera1 {
+  background-color: #DF9A1E !important;
+  border-color: #DF9A1E !important;
+  color: white !important;
+}
+
+.btn-sawdeera1:hover {
+  color: #fff;
+  background-color: #c88718;
+  border-color: #b87c16;
+}
+
+.btn-sawdeera1:focus,
+.btn-sawdeera1.focus {
+  color: #fff;
+  background-color: #c88718;
+  border-color: #b87c16;
+  box-shadow: 0 0 0 0 rgba(223, 154, 30, 0.5);
+}
+
+.btn-sawdeera1.disabled,
+.btn-sawdeera1:disabled {
+  color: #fff;
+  background-color: #DF9A1E;
+  border-color: #DF9A1E;
+}
+
+.btn-sawdeera1:not(:disabled):not(.disabled):active,
+.btn-sawdeera1:not(:disabled):not(.disabled).active,
+.show > .btn-sawdeera1.dropdown-toggle {
+  color: #fff;
+  background-color: #b87c16;
+  border-color: #a86f14;
+}
+
+.btn-sawdeera1:not(:disabled):not(.disabled):active:focus,
+.btn-sawdeera1:not(:disabled):not(.disabled).active:focus,
+.show > .btn-sawdeera1.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0 rgba(223, 154, 30, 0.5);
+}
+
+
+/* =========================
+   SAWDEERA BUTTON 2 (BROWN)
+========================= */
+
+.btn-sawdeera2 {
+  background-color: #4E3111 !important;
+  border-color: #4E3111 !important;
+  color: white !important;
+}
+
+.btn-sawdeera2:hover {
+  color: #fff;
+  background-color: #3f270d;
+  border-color: #36210b;
+}
+
+.btn-sawdeera2:focus,
+.btn-sawdeera2.focus {
+  color: #fff;
+  background-color: #3f270d;
+  border-color: #36210b;
+  box-shadow: 0 0 0 0 rgba(78, 49, 17, 0.5);
+}
+
+.btn-sawdeera2.disabled,
+.btn-sawdeera2:disabled {
+  color: #fff;
+  background-color: #4E3111;
+  border-color: #4E3111;
+}
+
+.btn-sawdeera2:not(:disabled):not(.disabled):active,
+.btn-sawdeera2:not(:disabled):not(.disabled).active,
+.show > .btn-sawdeera2.dropdown-toggle {
+  color: #fff;
+  background-color: #36210b;
+  border-color: #2e1c09;
+}
+
+.btn-sawdeera2:not(:disabled):not(.disabled):active:focus,
+.btn-sawdeera2:not(:disabled):not(.disabled).active:focus,
+.show > .btn-sawdeera2.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0 rgba(78, 49, 17, 0.5);
+}
