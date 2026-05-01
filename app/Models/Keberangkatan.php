@@ -10,6 +10,11 @@ class Keberangkatan extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'tanggal_keberangkatan' => 'datetime',
+        'tanggal_pulang' => 'datetime',
+    ];
+
     public function maskapaiBerangkat()
     {
         return $this->belongsTo(Maskapai::class,'maskapai_berangkat_id');

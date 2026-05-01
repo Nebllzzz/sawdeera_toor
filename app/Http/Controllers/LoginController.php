@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
-    public function showlogin()
+public function showlogin()
     {
         if(Auth::check()){
             return redirect('/dashboard');
@@ -54,7 +54,7 @@ class LoginController extends Controller
         // 4. PASSWORD SALAH
         return back()->with('gagal', 'Password salah');
     }
-    
+
     public function register(Request $request)
     {
         try {

@@ -12,7 +12,7 @@
 
                     <div class="card-header">
 
-                        <h3>Data Keberangkatan</h3>
+                        <h3>Data Keberangkatan Jemaah</h3>
 
                         <button class="btn btn-sawdeera1" onclick="createKeberangkatan()">
 

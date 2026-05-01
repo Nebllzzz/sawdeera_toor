@@ -64,7 +64,7 @@ class KeberangkatanController extends Controller
 
         $data = KeberangkatanJemaah::with([
             'jemaah',
-            'paket'
+            'paketUmrah'
         ])
             ->where('keberangkatan_id', $request->keberangkatan_id);
 
@@ -73,7 +73,7 @@ class KeberangkatanController extends Controller
             ->addIndexColumn()
 
             ->addColumn('nama', function ($row) {
-                return $row->jemaah->nama ?? '-';
+                return $row->jemaah->user->name ?? '-';
             })
 
             ->addColumn('nik', function ($row) {
@@ -81,7 +81,7 @@ class KeberangkatanController extends Controller
             })
 
             ->addColumn('paket', function ($row) {
-                return $row->paket->nama_paket ?? '-';
+                return $row->paketUmrah->nama_paket ?? '-';
             })
 
             ->addColumn('status', function ($row) {
