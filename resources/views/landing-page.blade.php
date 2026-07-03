@@ -77,11 +77,11 @@
 
                 <div class="mt-4 d-flex justify-content-center gap-3">
 
-                    <a href="#" class="btn btn-gold slide-left btn-active-light">
+                    <a href="/register" class="btn btn-gold slide-left btn-active-light">
                         Daftar Sekarang
                     </a>
 
-                    <a href="https://wa.me/6281287234572?text=Saya%20ingin%20konsultasi%20terkait%20umrah"
+                    <a href="https://wa.me/62895600791616?text=Saya%20ingin%20konsultasi%20terkait%20umrah"
                         target="_blank"
                         class="btn btn-outline-gold slide-right btn-active-light">
                         Konsultasi Gratis
@@ -207,7 +207,7 @@
     </section>
 
     <!-- Jenis Layanan Section -->
-    <section class="py-5 text-white">
+    <section class="py-5 text-white" id="jenis-layanan">
         <div class="container text-center">
 
             <h3 class="text-uppercase mb-3" style="letter-spacing:2px; opacity:.8;">

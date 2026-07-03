@@ -12,7 +12,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="/assets/plugins/fontawesome-free/css/all.min.css">
     {{-- Font Albert Sans --}}
-    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <!-- Ionicons -->
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     {{-- Bootstap Icons --}}
@@ -38,6 +39,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {{-- csrf token --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+        <meta name="user-id" content="{{ auth()->id() }}">
+    @endauth
     <style>
         /* GLOBAL BODY BACKGROUND */
 
@@ -165,6 +169,41 @@
         .main-header .nav-link:hover {
             color: #f5e6d3 !important;
         }
+
+        .sidebar .user-panel .info {
+            min-width: 0;
+            white-space: normal !important;
+            overflow: visible;
+        }
+
+        .sidebar .user-panel .info a {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.2;
+        }
+
+        .sidebar .user-panel .info small {
+            display: block;
+            white-space: normal;
+        }
+
+        .sidebar .nav-sidebar > .nav-item > .nav-link.active {
+            background: linear-gradient(135deg, #6B3E20, #8B5A2B) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(107, 62, 32, 0.35);
+        }
+
+        .sidebar .nav-sidebar > .nav-item > .nav-link.active .nav-icon,
+        .sidebar .nav-sidebar > .nav-item > .nav-link.active p {
+            color: #ffffff !important;
+        }
+
+        .sidebar .nav-sidebar > .nav-item > .nav-link {
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 
@@ -177,61 +216,158 @@
         </div>
 
         <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand">
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
 
-            <!-- Left -->
+            {{-- LEFT --}}
             <ul class="navbar-nav">
+
                 <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button" id="toggleSidebar">
+
                         <i class="fas fa-bars"></i>
+
                     </a>
                 </li>
+
             </ul>
 
-            <!-- Right -->
+            {{-- RIGHT --}}
             <ul class="navbar-nav ml-auto">
 
+                {{-- Notifications dropdown --}}
+                @auth
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" data-toggle="dropdown" href="#" id="notificationsToggle"
+                            aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span id="notifBadge" class="badge badge-danger navbar-badge"
+                                style="display: {{ auth()->user()->unreadNotifications->count() ? 'inline-block' : 'none' }};">{{ auth()->user()->unreadNotifications->count() }}</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="min-width:320px;">
+                            <span class="dropdown-header">Notifikasi</span>
+                            <div class="dropdown-divider"></div>
+                            <div id="notifList" style="max-height:320px; overflow:auto;">
+                                @forelse(auth()->user()->notifications->take(10) as $notification)
+                                    <a href="#" class="dropdown-item">
+                                        <div class="media">
+                                            <img src="{{ asset('img/logo-kecil.png') }}" alt="avatar"
+                                                class="img-size-50 mr-3 img-circle">
+                                            <div class="media-body">
+                                                <h3 class="dropdown-item-title" style="font-size:14px; font-weight:600;">
+                                                    {{ $notification->data['title'] ?? class_basename($notification->type) }}
+                                                </h3>
+                                                <p class="text-sm" style="margin:0">
+                                                    {{ $notification->data['message'] ?? '' }}</p>
+                                                <p class="text-muted text-sm" style="margin:0">
+                                                    {{ $notification->created_at->diffForHumans() }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                @empty
+                                    <div class="px-3 py-2 text-muted">Tidak ada notifikasi</div>
+                                @endforelse
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ route('notifications.index') ?? '#' }}" class="dropdown-item dropdown-footer">Lihat
+                                semua</a>
+                        </div>
+                    </li>
+                @endauth
+
                 <li class="nav-item">
+
                     <a href="#" class="nav-link text-danger" onclick="logoutConfirm()">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
+
+                        <i class="fas fa-sign-out-alt mr-1"></i>
+
                     </a>
 
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+
                         @csrf
+
                     </form>
+
                 </li>
 
             </ul>
+
         </nav>
         <!-- /.navbar -->
 
+
         <!-- Main Sidebar Container -->
         <aside class="main-sidebar sidebar-light elevation-4">
-            <!-- Brand Logo -->
-            <a href="/dashboard" class="brand-link brand-center">
-                <img src="{{ asset('img/logo.png') }}"
-                    alt="Sawdeera Toor Logo"
-                    class="brand-logo">
+
+            {{-- BRAND --}}
+            <a href="/dashboard" class="brand-link d-flex align-items-center justify-content-center">
+
+                <img id="sidebarLogo" src="{{ asset('img/logo.png') }}" alt="Sawdeera Toor Logo" class="brand-image"
+                    style="max-height:55px; width:auto; opacity:.95;">
+
             </a>
 
             <!-- Sidebar -->
             <div class="sidebar">
-                <!-- Sidebar user panel (optional) -->
-                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                    <div class="image">
-                        <img src="/assets/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+
+                {{-- USER PANEL --}}
+                <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
+
+                    <div class="image flex-shrink-0">
+
+                        <div class="d-flex align-items-center justify-content-center rounded-circle elevation-1"
+                            style="
+                                width:40px;
+                                height:40px;
+                                background:linear-gradient(135deg,#6B3E20,#8B5A2B);
+                                color:white;
+                                font-size:18px;
+                            ">
+
+                            <i class="fas fa-user"></i>
+
+                        </div>
+
                     </div>
-                    <div class="info">
-                        <a href="#" class="d-block">{{ auth()->user()->name }}</a>
+
+                    <div class="info" style="min-width:0;">
+
+                        <a href="#" class="d-block font-weight-semibold"
+                            style="
+                                white-space:normal;
+                                word-break:break-word;
+                                overflow-wrap:anywhere;
+                                line-height:1.2;
+                            ">
+
+                            {{ auth()->user()->name }}
+
+                        </a>
+
+                        <small class="text-muted text-capitalize d-block">
+
+                            @if (auth()->user()->role === 'admin')
+                                Pimpinan
+                            @elseif(auth()->user()->role === 'operator')
+                                Admin
+                            @else
+                                {{ auth()->user()->role }}
+                            @endif
+
+                        </small>
+
                     </div>
+
                 </div>
 
                 @include('layouts.sidebar')
 
             </div>
             <!-- /.sidebar -->
+
         </aside>
+
 
         <!-- Content Wrapper. Contains page content -->
         @yield('content')
@@ -285,18 +421,101 @@
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.js"></script>
     {{-- logout --}}
     <script>
-    function logoutConfirm(){
-        Swal.fire({
-            title: 'Yakin logout?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, logout'
-        }).then((result) => {
-            if(result.isConfirmed){
-                document.getElementById('logout-form').submit();
+        function logoutConfirm() {
+            Swal.fire({
+                title: 'Yakin logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, logout'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('logout-form').submit();
+                }
+            })
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const body = document.body;
+            const logo = document.getElementById('sidebarLogo');
+
+            function updateSidebarLogo() {
+
+                if (body.classList.contains('sidebar-collapse')) {
+
+                    logo.src = "{{ asset('img/logo-kecil.png') }}";
+
+                    logo.style.maxHeight = "40px";
+
+                } else {
+
+                    logo.src = "{{ asset('img/logo.png') }}";
+
+                    logo.style.maxHeight = "55px";
+
+                }
+
             }
-        })
-    }
+
+            // initial
+            updateSidebarLogo();
+
+            // detect sidebar toggle
+            document.getElementById('toggleSidebar')
+                .addEventListener('click', function() {
+
+                    setTimeout(() => {
+                        updateSidebarLogo();
+                    }, 300);
+
+                });
+
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const userMeta = document.querySelector('meta[name="user-id"]');
+                if (!window.Echo || !userMeta) return;
+
+                const userId = userMeta.getAttribute('content');
+                const badge = document.getElementById('notifBadge');
+                const list = document.getElementById('notifList');
+
+                window.Echo.private(`App.Models.User.${userId}`)
+                    .notification((notification) => {
+                        // prepend notification item
+                        const item = document.createElement('a');
+                        item.className = 'dropdown-item';
+                        item.href = '#';
+                        const html = `
+                            <div class="media">
+                                <img src="/img/logo-kecil.png" alt="avatar" class="img-size-50 mr-3 img-circle">
+                                <div class="media-body">
+                                    <h3 class="dropdown-item-title" style="font-size:14px; font-weight:600;">${notification.title ?? notification.type}</h3>
+                                    <p class="text-sm" style="margin:0">${notification.message ?? (notification.data && notification.data.message) ?? ''}</p>
+                                    <p class="text-muted text-sm" style="margin:0">Baru saja</p>
+                                </div>
+                            </div>
+                        `;
+                        item.innerHTML = html;
+                        if (list.children.length) list.insertBefore(item, list.firstChild);
+                        else list.appendChild(item);
+
+                        // update badge
+                        if (badge) {
+                            const current = parseInt(badge.textContent || '0') || 0;
+                            badge.textContent = current + 1;
+                            badge.style.display = 'inline-block';
+                        }
+                    });
+
+            } catch (e) {
+                // silent
+            }
+        });
     </script>
 
     @stack('scripts')

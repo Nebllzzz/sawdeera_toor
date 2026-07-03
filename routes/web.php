@@ -7,10 +7,14 @@ use App\Http\Controllers\JemaahController;
 use App\Http\Controllers\KeberangkatanController;
 use App\Http\Controllers\KeberangkatanJemaahController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaskapaiController;
+use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PaketUmrahController;
 use App\Http\Controllers\TourLeaderController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -40,9 +44,7 @@ Route::post('/actionlogin', [LoginController::class, 'actionlogin'])->name('acti
 Route::middleware('auth')->group(function () {
 
     // dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    });
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // logout
     Route::post('/logout', function () {
@@ -132,8 +134,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/dokumen', [DokumenJemaahController::class, 'indexDokumen']);
     Route::post('/dokumen/upload', [DokumenJemaahController::class, 'uploadDokumen']);
 
+    // pemabayan (pembayaran)
+    Route::get('/pemabayan', [PembayaranController::class, 'pemabayanIndex']);
+    Route::post('/pemabayan/upload', [PembayaranController::class, 'pemabayanUpload']);
+
+    // notifications
+    Route::get('/notifications', [NotificationsController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.readAll');
+
     // verifikasi dokumen
     Route::prefix('admin')->group(function () {
+
 
         Route::get('/dokumen', [DokumenJemaahController::class, 'index']);
         Route::post('/dokumen/data', [DokumenJemaahController::class, 'data']);
@@ -141,9 +153,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/dokumen/{id}', [DokumenJemaahController::class, 'show']);
         Route::post('/dokumen/{id}/approve', [DokumenJemaahController::class, 'approve']);
         Route::post('/dokumen/{id}/reject', [DokumenJemaahController::class, 'reject']);
+
+        // verifikasi pemabayan
+        Route::get('/pemabayan-admin', [PembayaranController::class, 'pemabayanAdmin']);
+        Route::post('/pemabayan/data', [PembayaranController::class, 'pemabayanAdminData']);
+        Route::get('/pemabayan/{id}', [PembayaranController::class, 'pemabayanAdminShow']);
+        Route::post('/pemabayan/{id}/approve', [PembayaranController::class, 'pemabayanAdminApprove']);
+        Route::post('/pemabayan/{id}/reject', [PembayaranController::class, 'pemabayanAdminReject']);
     });
 
+    // laporan jemaah (management pimpinan)
+    Route::get('/laporan/jemaah', [ReportController::class, 'index']);
+    Route::post('/laporan/jemaah/data', [ReportController::class, 'data']);
+    Route::get('/laporan/jemaah/export/excel', [ReportController::class, 'exportExcel']);
+    Route::get('/laporan/jemaah/export/pdf', [ReportController::class, 'exportPdf']);
+
     // keberangkatan jemaah
+
     Route::get('/keberangkatan-jemaah', [KeberangkatanJemaahController::class, 'index']);
     Route::post('/keberangkatan-jemaah/store', [KeberangkatanJemaahController::class, 'store']);
     Route::get('/keberangkatan-jemaah/jadwal-paket/{paket}/{durasi}', [KeberangkatanJemaahController::class, 'jadwalByPaket']);

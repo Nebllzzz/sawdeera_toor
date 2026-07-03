@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('title', 'Dokumen Jemaah')
+@section('title', 'Verifikasi Pemabayan')
 
 @section('content')
 
@@ -9,26 +9,24 @@
 
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h3>Verifikasi Dokumen Jemaah</h3>
+                        <h3>Verifikasi Pembayaran</h3>
                     </div>
 
                     <div class="card-body">
                         <div class="table-responsive">
-
                             <table class="table table-striped text-center" id="dt">
                                 <thead>
                                     <tr>
                                         <th>No</th>
                                         <th>Nama</th>
                                         <th>NIK</th>
-                                        <th>KTP</th>
-                                        <th>Paspor</th>
-                                        <th>Visa</th>
-                                        <th>Vaksin</th>
+                                        <th>Jumlah</th>
+                                        <th>Jenis</th>
+                                        <th>Status</th>
+                                        <th>Bukti</th>
                                     </tr>
                                 </thead>
                             </table>
-
                         </div>
                     </div>
                 </div>
@@ -38,17 +36,16 @@
     </div>
 
     {{-- MODAL --}}
-    <div class="modal fade" id="modalDokumen">
+    <div class="modal fade" id="modalPembayaran">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h4>Detail Dokumen</h4>
+                    <h4>Detail Pembayaran</h4>
                     <button class="close" data-dismiss="modal">&times;</button>
                 </div>
 
                 <div class="modal-body text-center">
-
                     <div id="previewBox">
                         <a id="fileLink" target="_blank">
                             <img id="previewImg" style="max-height:400px;">
@@ -60,6 +57,11 @@
                         <textarea id="alasan" class="form-control"></textarea>
                     </div>
 
+                    <div class="mt-3 text-left">
+                        <p><b>Jumlah:</b> <span id="jumlahText"></span></p>
+                        <p><b>Metode:</b> <span id="metodeText"></span></p>
+                        <p><b>Jenis:</b> <span id="jenisText"></span></p>
+                    </div>
                 </div>
 
                 <div class="modal-footer" id="actionButtons"></div>
@@ -74,25 +76,22 @@
             let currentStatus = null;
 
             var datatable = $("#dt").DataTable({
-
                 processing: true,
                 serverSide: true,
-
-                dom:
-                    "<'row'" +
-                        "<'col-sm-6 d-flex align-items-center justify-content-start'l>" +
-                        "<'col-sm-6 d-flex align-items-center justify-content-end'f>" +
+                dom: "<'row'" +
+                    "<'col-sm-6 d-flex align-items-center justify-content-start'l>" +
+                    "<'col-sm-6 d-flex align-items-center justify-content-end'f>" +
                     ">" +
 
                     "<'table-responsive'tr>" +
 
                     "<'row'" +
-                        "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
-                        "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
+                    "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
+                    "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
                     ">",
 
                 ajax: {
-                    url: '/admin/dokumen/data',
+                    url: '/admin/pemabayan/data',
                     type: 'POST',
                     headers: {
                         "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
@@ -111,33 +110,34 @@
                         data: 'nik'
                     },
                     {
-                        data: 'ktp'
+                        data: 'jumlah'
                     },
                     {
-                        data: 'paspor'
+                        data: 'jenis_pembayaran'
                     },
                     {
-                        data: 'visa'
+                        data: 'status'
                     },
                     {
-                        data: 'vaksin'
-                    },
+                        data: 'bukti'
+                    }
                 ]
-
             });
 
-
             function openModal(id) {
-                $.get('/admin/dokumen/' + id, function(res) {
-
+                $.get('/admin/pemabayan/' + id, function(res) {
                     currentId = res.id;
                     currentStatus = res.status;
 
-                    $('#modalDokumen').modal('show');
+                    $('#modalPembayaran').modal('show');
 
-                    if (res.file_path) {
-                        $('#fileLink').attr('href', '/storage/' + res.file_path);
-                        $('#previewImg').attr('src', '/storage/' + res.file_path);
+                    $('#jumlahText').text(res.jumlah);
+                    $('#metodeText').text(res.metode_pembayaran);
+                    $('#jenisText').text(res.jenis_pembayaran);
+
+                    if (res.bukti_pembayaran) {
+                        $('#fileLink').attr('href', '/storage/' + res.bukti_pembayaran);
+                        $('#previewImg').attr('src', '/storage/' + res.bukti_pembayaran);
                     }
 
                     $('#previewBox').show();
@@ -147,57 +147,49 @@
                 });
             }
 
-
             function renderButtons() {
-
                 let btn = '';
-
                 if (currentStatus === 'diproses') {
                     btn = `
-                    <button class="btn btn-danger" onclick="showReject()">Tolak</button>
-                    <button class="btn btn-success" onclick="approve()">Setujui</button>`
+                <button class="btn btn-danger" onclick="showReject()">Tolak</button>
+                <button class="btn btn-success" onclick="approve()">Setujui</button>
+            `;
                 } else if (currentStatus === 'diverifikasi') {
-                    btn = `<button class="btn btn-danger" onclick="showReject()">Tolak</button>`;
+                    btn = `<button class="btn btn-secondary" disabled>Sudah diverifikasi</button>`;
                 } else {
-                    btn = `<button class="btn btn-success" onclick="approve()">Setujui</button>`;
+                    btn = `<button class="btn btn-secondary" disabled>Ditolak</button>`;
                 }
-
                 $('#actionButtons').html(btn);
             }
-
 
             function showReject() {
                 $('#previewBox').hide();
                 $('#rejectBox').show();
-
                 $('#actionButtons').html(`
-                    <button class="btn btn-danger" onclick="reject()">Submit</button>
-                `);
+            <button class="btn btn-danger" onclick="reject()">Submit</button>
+        `);
             }
 
-
             function approve() {
-                $.post('/admin/dokumen/' + currentId + '/approve', {
+                $.post('/admin/pemabayan/' + currentId + '/approve', {
                     _token: $('meta[name="csrf-token"]').attr('content')
                 }, function() {
-                    $('#modalDokumen').modal('hide');
-                    Swal.fire('Success', 'Disetujui', 'success');
+                    $('#modalPembayaran').modal('hide');
+                    Swal.fire('Success', 'Pembayaran disetujui', 'success');
                     $('#dt').DataTable().ajax.reload();
                 });
             }
 
-
             function reject() {
-                $.post('/admin/dokumen/' + currentId + '/reject', {
+                $.post('/admin/pemabayan/' + currentId + '/reject', {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     alasan: $('#alasan').val()
                 }, function() {
-                    $('#modalDokumen').modal('hide');
-                    Swal.fire('Success', 'Ditolak', 'success');
+                    $('#modalPembayaran').modal('hide');
+                    Swal.fire('Success', 'Pembayaran ditolak', 'success');
                     $('#dt').DataTable().ajax.reload();
                 });
             }
         </script>
     @endpush
-
 @endsection

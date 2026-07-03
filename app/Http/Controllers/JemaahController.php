@@ -20,13 +20,29 @@ class JemaahController extends Controller
     {
         if ($request->ajax()) {
 
-            $query = User::leftJoin('data_jemaah', 'users.id', '=', 'data_jemaah.user_id')
+            $user = auth()->user();
+
+            $query = User::query()
+                ->leftJoin('data_jemaah', 'users.id', '=', 'data_jemaah.user_id')
                 ->leftJoin('users as operator', 'data_jemaah.operator_id', '=', 'operator.id')
                 ->where('users.role', 'jemaah')
+
+                // FILTER OPERATOR
+                ->where(function ($q) use ($user) {
+
+                    // tampilkan semua kalau admin
+                    if ($user->role !== 'admin') {
+
+                        $q->where('data_jemaah.operator_id', $user->id)
+                            ->orWhereNull('data_jemaah.operator_id');
+                    }
+                })
+
                 ->select(
                     'users.*',
                     'data_jemaah.nik',
                     'data_jemaah.no_telepon',
+                    'data_jemaah.operator_id',
                     'operator.name as operator_name'
                 );
 
@@ -34,58 +50,101 @@ class JemaahController extends Controller
 
                 ->addIndexColumn()
 
-                ->addColumn('nama', fn($r) => $r->name)
-                ->addColumn('email', fn($r) => $r->email)
-                ->addColumn('nik', fn($r) => $r->jemaah->nik ?? '-')
-                ->addColumn('telepon', fn($r) => $r->jemaah->no_telepon ?? '-')
+                ->addColumn('nama', function ($r) {
+                    return $r->name ?? '-';
+                })
+
+                ->addColumn('email', function ($r) {
+                    return $r->email ?? '-';
+                })
+
+                ->addColumn('nik', function ($r) {
+                    return $r->nik ?? '-';
+                })
+
+                ->addColumn('telepon', function ($r) {
+                    return $r->no_telepon ?? '-';
+                })
 
                 ->addColumn('statusActivity', function ($r) {
-                    return $r->status == 'aktif'
-                        ? "<span class='badge badge-success'>Aktif</span>"
-                        : ($r->status == 'proses'
-                            ? "<span class='badge badge-warning'>Proses</span>"
-                            : "<span class='badge badge-danger'>Tidak Aktif</span>");
+
+                    return match ($r->status) {
+
+                        'aktif' => "
+                            <span class='badge badge-success'>
+                                Aktif
+                            </span>
+                        ",
+
+                        'proses' => "
+                            <span class='badge badge-warning'>
+                                Proses
+                            </span>
+                        ",
+
+                        default => "
+                            <span class='badge badge-danger'>
+                                Tidak Aktif
+                            </span>
+                        "
+                    };
                 })
 
                 ->addColumn('operator', function ($r) {
+
                     return $r->operator_name ?? 'Belum dihandle';
                 })
 
                 ->addColumn('action', function ($row) {
 
                     return "
-                    <div class='row g-1'>
-                        <div class='col-6 p-1'>
-                            <button class='btn btn-warning btn-sm editJemaah w-100'
-                                data-id='{$row->id}'>
-                                <i class='bi bi-pencil-square text-white'></i>
-                            </button>
-                        </div>
+                        <div class='row g-1'>
 
-                        <div class='col-6 p-1'>
-                            <button class='btn btn-danger btn-sm deleteJemaah w-100'
-                                data-id='{$row->id}'>
-                                <i class='bi bi-trash text-white'></i>
-                            </button>
-                        </div>
+                            <div class='col-6 p-1'>
+                                <button class='btn btn-warning btn-sm editJemaah w-100'
+                                    data-id='{$row->id}'>
 
-                        <div class='col-6 p-1'>
-                            <button class='btn btn-success btn-sm toggleStatus w-100'
-                                data-id='{$row->id}'>
-                                <i class='bi bi-toggle-on text-white'></i>
-                            </button>
-                        </div>
+                                    <i class='bi bi-pencil-square text-white'></i>
 
-                        <div class='col-6 p-1'>
-                            <button class='btn btn-info btn-sm detailJemaah w-100'
-                                data-id='{$row->id}'>
-                                <i class='bi bi-eye text-white'></i>
-                            </button>
+                                </button>
+                            </div>
+
+                            <div class='col-6 p-1'>
+                                <button class='btn btn-danger btn-sm deleteJemaah w-100'
+                                    data-id='{$row->id}'>
+
+                                    <i class='bi bi-trash text-white'></i>
+
+                                </button>
+                            </div>
+
+                            <div class='col-6 p-1'>
+                                <button class='btn btn-success btn-sm toggleStatus w-100'
+                                    data-id='{$row->id}'>
+
+                                    <i class='bi bi-toggle-on text-white'></i>
+
+                                </button>
+                            </div>
+
+                            <div class='col-6 p-1'>
+                                <button class='btn btn-info btn-sm detailJemaah w-100'
+                                    data-id='{$row->id}'>
+
+                                    <i class='bi bi-eye text-white'></i>
+
+                                </button>
+                            </div>
+
                         </div>
-                    </div>";
+                    ";
                 })
 
-                ->rawColumns(['statusActivity', 'action'])
+                ->rawColumns([
+                    'statusActivity',
+                    'action'
+                ])
+
                 ->make(true);
         }
     }

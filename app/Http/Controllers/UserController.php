@@ -23,7 +23,8 @@ public function data(Request $request)
 
         $query = User::query()
             ->where('id','!=',1)
-            ->where('id','!=',$auth);
+            ->where('id','!=',$auth)
+            ->where('role', 'operator');
 
         return DataTables::of($query)
 
@@ -32,14 +33,12 @@ public function data(Request $request)
         ->addColumn('roles', function ($row) {
 
             if($row->role == 'admin'){
-                return "<span class='badge badge-danger'>Admin</span>";
+                return "<span class='badge badge-danger'>Pimpinan</span>";
             }
 
             if($row->role == 'operator'){
-                return "<span class='badge badge-info'>Operator</span>";
+                return "<span class='badge badge-info'>Admin</span>";
             }
-
-            return "<span class='badge badge-secondary'>Jemaah</span>";
         })
 
         ->addColumn('statusActivity', function ($row) {

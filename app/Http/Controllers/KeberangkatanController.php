@@ -21,7 +21,7 @@ class KeberangkatanController extends Controller
 
     public function detail($id)
     {
-        return view('home.keberangkatan.detail',compact('id'));
+        return view('home.keberangkatan.detail', compact('id'));
     }
 
     public function detail_data($id)
@@ -193,6 +193,24 @@ class KeberangkatanController extends Controller
 
         return response()->json([
             "success" => true
+        ]);
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:keberangkatan,id',
+            'status' => 'required|in:pendaftaran,persiapan,berangkat,pulang,selesai'
+        ]);
+
+        $k = Keberangkatan::findOrFail($request->id);
+        $k->status = $request->status;
+        $k->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diupdate',
+            'status' => $k->status
         ]);
     }
 }

@@ -11,22 +11,27 @@ class PaketUmrah extends Model
 
     public function hotelMakkah()
     {
-        return $this->belongsTo(Hotel::class,'hotel_makkah_id');
+        return $this->belongsTo(Hotel::class, 'hotel_makkah_id');
     }
 
     public function hotelMadinah()
     {
-        return $this->belongsTo(Hotel::class,'hotel_madinah_id');
+        return $this->belongsTo(Hotel::class, 'hotel_madinah_id');
     }
 
     public function fasilitas()
     {
-        return $this->hasMany(PaketFasilitas::class,'paket_id');
+        return $this->hasMany(PaketFasilitas::class, 'paket_id');
     }
 
     public function program()
     {
-        return $this->hasMany(PaketProgram::class,'paket_id')
-            ->orderBy('hari','asc');
+        return $this->hasMany(PaketProgram::class, 'paket_id')
+            ->orderBy('hari', 'asc');
+    }
+
+    public function keberangkatanJemaah()
+    {
+        return $this->hasMany(KeberangkatanJemaah::class, 'paket_umrah_id');
     }
 }

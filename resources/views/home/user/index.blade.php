@@ -9,7 +9,7 @@
                 <div class="col-lg-12">
                     <div class="card mt-3">
                         <div class="card-header">
-                            <h2>Data Admin & Operator</h2>
+                            <h2>Data Admin</h2>
                             <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalUser" onclick="createUser()">Tambah Data</button>
                         </div>
                         <div class="card-body">
@@ -65,7 +65,7 @@
                 @csrf
 
                 <div class="modal-header">
-                    <h4 class="modal-title" id="modalTitle">Tambah User</h4>
+                    <h4 class="modal-title" id="modalTitle">Tambah Admin</h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
 
@@ -94,8 +94,8 @@
                     <div class="mb-3">
                         <label>Role</label>
                         <select name="role" id="role" class="form-control">
-                            <option value="admin">Admin</option>
-                            <option value="operator">Operator</option>
+                            <option value="admin">Pimpinan</option>
+                            <option value="operator">Admin</option>
                         </select>
                     </div>
 

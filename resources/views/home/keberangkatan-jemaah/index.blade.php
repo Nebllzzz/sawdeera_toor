@@ -23,7 +23,6 @@
                             <div class="card-body">
                                 @if ($keberangkatanJemaah->isNotEmpty())
                                     @foreach ($keberangkatanJemaah as $item)
-
                                         <div class="card shadow-sm mb-4 p-4"
                                             style="background:linear-gradient(135deg,#6b3f1e,#8c4d24);color:white;border-radius:12px">
 
@@ -85,33 +84,67 @@
                                                 👤 <b>Tour Leader :</b>
                                                 {{ $item->keberangkatan->leader->nama ?? 'Belum ditentukan' }}
                                             </p>
+                                            {{-- FASILITAS & PROGRAM --}}
+                                            <hr style="border-color:rgba(255,255,255,0.2)">
 
-                                            {{-- STATUS + ACTION --}}
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <div>
+                                                <h6>Fasilitas:</h6>
+                                                <ul>
+                                                    @foreach ($item->paketUmrah->fasilitas as $f)
+                                                        <li>{{ $f->nama }}</li>
+                                                    @endforeach
+                                                </ul>
+
+                                                <h6>Program:</h6>
+                                                <ul>
+                                                    @foreach ($item->paketUmrah->program as $p)
+                                                        <li>Hari {{ $p->hari }} - {{ $p->deskripsi }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+
+                                            {{-- STATUS --}}
+                                            <div class="mt-3">
                                                 <p class="mb-0">
                                                     📌 <b>Status :</b>
                                                     <span class="badge bg-light text-dark">
-                                                        {{ ucfirst($item->status) }}
+                                                        {{ ucfirst($item->keberangkatan->status) }}
                                                     </span>
                                                 </p>
-
-                                                @if ($item->keberangkatan->status == 'pendaftaran')
-                                                    <div class="btn-group">
-                                                        <button class="btn btn-sm btn-warning edit-jadwal"
-                                                            data-id="{{ $item->id }}">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-
-                                                        <button class="btn btn-sm btn-danger delete-jadwal"
-                                                            data-id="{{ $item->id }}">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                @endif
                                             </div>
 
                                         </div>
 
+                                        {{-- ACTION CARD (separate, below main card) --}}
+                                        @if ($item->keberangkatan->status == 'pendaftaran')
+                                            <div class="card mb-4"
+                                                style="border-radius:12px; background: linear-gradient(180deg,#fff7e0,#f0d9a0); color:#222;">
+                                                <div class="card-body">
+                                                    <p class="mb-2"><strong>Apakah anda menyetujui jadwal keberangkatan
+                                                            ini?</strong></p>
+
+                                                    <div class="d-flex gap-2 mt-3">
+                                                        <button class="btn btn-secondary ajukan-perubahan"
+                                                            data-id="{{ $item->id }}">
+                                                            Ajukan Perubahan
+                                                        </button>
+                                                        <button class="btn btn-danger delete-jadwal ml-1"
+                                                            data-id="{{ $item->id }}">
+                                                            Hapus Jadwal
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="mt-3 p-3" style="background:#fff7d9; border-radius:8px;">
+                                                        <strong>Notes :</strong>
+                                                        <p class="mb-0">Harap hadir minimal 3 jam sebelum
+                                                            keberangkatan<br>
+                                                            Jika ada perubahan segera ajukan form perubahan minimal H-14
+                                                            hari
+                                                            sebelum keberangkatan</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
                                     @endforeach
                                 @else
                                     <div class="text-center py-5">
@@ -270,8 +303,8 @@
                     });
                 });
 
-                // Edit button
-                $(document).on('click', '.edit-jadwal', function() {
+                // Ajukan Perubahan (open edit modal)
+                $(document).on('click', '.ajukan-perubahan', function() {
                     let id = $(this).data('id');
                     $.get(`/keberangkatan-jemaah/${id}/edit`, function(response) {
                         $('#editBody').html(response.html);
@@ -328,6 +361,41 @@
                         }
                     });
                 });
+
+                // hide/show action cards if related keberangkatan status is not 'pendaftaran'
+                function syncActionVisibility() {
+                    $('.card.mb-4').not('.shadow-sm').each(function() {
+                        let actionCard = $(this);
+                        let mainCard = actionCard.prevAll('.card.shadow-sm').first();
+                        if (!mainCard.length) return;
+                        let statusText = mainCard.find('.badge').first().text().trim().toLowerCase();
+                        if (statusText !== 'pendaftaran') {
+                            actionCard.hide();
+                        } else {
+                            actionCard.show();
+                        }
+                    });
+                }
+
+                // initial sync
+                syncActionVisibility();
+
+                // observe for status text changes to re-sync action visibility
+                try {
+                    const container = document.querySelector('.card-body');
+                    if (container) {
+                        const observer = new MutationObserver(function() {
+                            syncActionVisibility();
+                        });
+                        observer.observe(container, {
+                            subtree: true,
+                            characterData: true,
+                            childList: true
+                        });
+                    }
+                } catch (e) {
+                    // ignore
+                }
             });
         </script>
     @endpush

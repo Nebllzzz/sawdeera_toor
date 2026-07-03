@@ -8,14 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\RegisterToAdmin;
 
 class LoginController extends Controller
 {
-public function showlogin()
+    public function showlogin()
     {
-        if(Auth::check()){
+        if (Auth::check()) {
             return redirect('/dashboard');
-        }else{
+        } else {
             return view('login');
         }
     }
@@ -111,9 +112,21 @@ public function showlogin()
 
             DB::commit();
 
+            // notify all admins & operators about new registration
+            $recipients = User::whereIn('role', ['admin', 'operator'])->get();
+            $data = [
+                'title' => 'Registrasi Baru',
+                'message' => "Pengguna {$user->name} ({$user->email}) mendaftar dan menunggu verifikasi",
+                'user_id' => $user->id,
+            ];
+
+            foreach ($recipients as $recipient) {
+                $recipient->notify(new RegisterToAdmin($data));
+            }
+
+
             return redirect('/login')
                 ->with('berhasil', 'Registrasi berhasil, tunggu verifikasi admin untuk melanjutkan login!');
-
         } catch (\Exception $e) {
             DB::rollBack();
 
