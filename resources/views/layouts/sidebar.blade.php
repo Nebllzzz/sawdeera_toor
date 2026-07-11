@@ -34,9 +34,15 @@
             </li>
 
             <li class="nav-item">
-                <a href="/profile" class="nav-link {{ $active('profile', 'profile/*') }}">
+                <a href="/pendaftaran-saya" class="nav-link {{ $active('pendaftaran-saya', 'pendaftaran-saya/*') }}">
                     <i class="nav-icon fas fa-user"></i>
-                    <p>Profile</p>
+                    <p>Pendaftaran Saya</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/status-verifikasi" class="nav-link {{ $active('status-verifikasi') }}">
+                    <i class="nav-icon fas fa-tasks"></i>
+                    <p>Status Verifikasi</p>
                 </a>
             </li>
         @endif
@@ -159,7 +165,7 @@
             <li class="nav-item">
                 <a href="/dokumen" class="nav-link {{ $active('dokumen', 'dokumen/*') }}">
                     <i class="nav-icon fas fa-file-upload"></i>
-                    <p>Upload Dokumen</p>
+                    <p>Dokumen Pendukung</p>
                 </a>
             </li>
 
@@ -167,6 +173,13 @@
                 <a href="/pemabayan" class="nav-link {{ $active('pemabayan', 'pemabayan/*') }}">
                     <i class="nav-icon fas fa-receipt"></i>
                     <p>Pembayaran</p>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/paket-umrah-jemaah" class="nav-link {{ $active('paket-umrah-jemaah', 'paket-umrah-jemaah/*') }}">
+                    <i class="nav-icon fas fa-box-open"></i>
+                    <p>Paket Umrah</p>
                 </a>
             </li>
 

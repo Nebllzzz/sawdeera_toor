@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\DataJemaah;
 use App\Models\DokumenJemaah;
 use App\Models\Pembayaran;
+use App\Models\PembayaranTahapan;
 use App\Models\KeberangkatanJemaah;
 use App\Models\Keberangkatan;
 use App\Models\PaketUmrah;
@@ -31,13 +32,14 @@ class DashboardController extends Controller
             $totalTourLeader = TourLeader::count();
             $totalMaskapai = Maskapai::count();
 
-            $pembayaranTotal = Pembayaran::sum('jumlah');
-            $pembayaranPending = Pembayaran::where('status', 'diproses')->count();
+            $pembayaranTotal = PembayaranTahapan::where('status', 'diverifikasi')->sum('nominal');
+            $pembayaranPending = PembayaranTahapan::where('status', 'diproses')->count();
             $dokumenPending = DokumenJemaah::where('status', 'diproses')->count();
 
             // charts: pembayaran per month (last 6 months)
-            $pembayaranPerMonth = Pembayaran::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, SUM(jumlah) as total")
-                ->where('created_at', '>=', now()->subMonths(6))
+            $pembayaranPerMonth = PembayaranTahapan::selectRaw("DATE_FORMAT(verified_at, '%Y-%m') as ym, SUM(nominal) as total")
+                ->where('status', 'diverifikasi')
+                ->where('verified_at', '>=', now()->subMonths(6))
                 ->groupBy('ym')
                 ->orderBy('ym')
                 ->get()
@@ -100,7 +102,10 @@ class DashboardController extends Controller
             return view('dashboard.jemaah-empty');
         }
 
-        $required = ['ktp', 'paspor', 'visa', 'vaksin'];
+        $required = ['ktp', 'paspor', 'visa', 'vaksin', 'kartu_keluarga', 'foto_4x6'];
+        if ($jemaah->status_pernikahan === 'menikah') {
+            $required[] = 'buku_nikah';
+        }
         $docs = DokumenJemaah::where('jemaah_id', $jemaah->id)->get();
 
         $docStatus = collect($required)->mapWithKeys(function ($k) use ($docs) {
@@ -151,8 +156,8 @@ class DashboardController extends Controller
 
         }
 
-        // completion percent (6 points)
-        $points = 6;
+        // data diri + dokumen wajib + pembayaran
+        $points = count($required) + 2;
         $score = 0;
         // 1. data diri
         $score++;

@@ -15,6 +15,7 @@ use App\Http\Controllers\TourLeaderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\StatusVerificationController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -52,9 +53,12 @@ Route::middleware('auth')->group(function () {
         return redirect('/login');
     })->name('logout');
 
-    // profil
-    Route::get('/profile', fn() => view('home.profil.index'));
-    Route::post('/profile/update', [JemaahController::class, 'updateProfile']);
+    // profil akun & pendaftaran jemaah
+    Route::get('/profile', [JemaahController::class, 'profile'])->name('profile');
+    Route::post('/profile/update', [JemaahController::class, 'updateAccountProfile'])->name('profile.update');
+    Route::get('/pendaftaran-saya', [JemaahController::class, 'registration'])->name('registration');
+    Route::post('/pendaftaran-saya', [JemaahController::class, 'updateRegistration'])->name('registration.update');
+    Route::get('/status-verifikasi', [StatusVerificationController::class, 'index']);
 
     // user
     Route::get('/user', [UserController::class, 'index']);
@@ -127,6 +131,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/delete/{id}', [JemaahController::class, 'destroy']);
 
         Route::post('/toggle/{id}', [JemaahController::class, 'toggleStatus']);
+        Route::post('/toggle-data/{id}', [JemaahController::class, 'toggleDataStatus']);
         Route::get('/detail/{id}', [JemaahController::class, 'detail']);
     });
 
@@ -158,6 +163,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pemabayan-admin', [PembayaranController::class, 'pemabayanAdmin']);
         Route::post('/pemabayan/data', [PembayaranController::class, 'pemabayanAdminData']);
         Route::get('/pemabayan/{id}', [PembayaranController::class, 'pemabayanAdminShow']);
+        Route::get('/pemabayan/{id}/detail', [PembayaranController::class, 'pemabayanAdminDetail']);
         Route::post('/pemabayan/{id}/approve', [PembayaranController::class, 'pemabayanAdminApprove']);
         Route::post('/pemabayan/{id}/reject', [PembayaranController::class, 'pemabayanAdminReject']);
     });
@@ -170,10 +176,11 @@ Route::middleware('auth')->group(function () {
 
     // keberangkatan jemaah
 
+    Route::get('/paket-umrah-jemaah', [KeberangkatanJemaahController::class, 'paketIndex']);
+    Route::get('/paket-umrah-jemaah/jadwal-paket/{paket}/{durasi}', [KeberangkatanJemaahController::class, 'jadwalByPaket']);
+    Route::get('/paket-umrah-jemaah/paket/{id}', [KeberangkatanJemaahController::class, 'paketDetail']);
     Route::get('/keberangkatan-jemaah', [KeberangkatanJemaahController::class, 'index']);
     Route::post('/keberangkatan-jemaah/store', [KeberangkatanJemaahController::class, 'store']);
     Route::get('/keberangkatan-jemaah/jadwal-paket/{paket}/{durasi}', [KeberangkatanJemaahController::class, 'jadwalByPaket']);
-    Route::get('/keberangkatan-jemaah/{id}/edit', [KeberangkatanJemaahController::class, 'edit']);
-    Route::post('/keberangkatan-jemaah/{id}', [KeberangkatanJemaahController::class, 'update']);
-    Route::delete('/keberangkatan-jemaah/{id}', [KeberangkatanJemaahController::class, 'destroy']);
+    Route::get('/keberangkatan-jemaah/paket/{id}', [KeberangkatanJemaahController::class, 'paketDetail']);
 });

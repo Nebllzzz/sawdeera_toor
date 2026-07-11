@@ -24,4 +24,9 @@ class KeberangkatanJemaah extends Model
     {
         return $this->belongsTo(DataJemaah::class);
     }
+
+    public function pembayaran()
+    {
+        return $this->hasOne(Pembayaran::class, 'keberangkatan_jemaah_id');
+    }
 }

@@ -29,6 +29,7 @@
                                                 <th>NIK</th>
                                                 <th>No HP</th>
                                                 <th>Status</th>
+                                                <th>Status Data</th>
                                                 <th>Terakhir Ditangani</th>
                                                 <th>Aksi</th>
                                             </tr>
@@ -64,7 +65,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
-                <form id="formJemaah">
+                <form id="formJemaah" enctype="multipart/form-data">
                     @csrf
 
                     <div class="modal-header">
@@ -142,6 +143,19 @@
                                 <textarea id="alamat" name="alamat" class="form-control"></textarea>
                             </div>
 
+                            <div class="col-12"><hr><h5>Kontak, Paspor & Kesehatan</h5></div>
+                            <div class="col-md-6"><label>Kontak Darurat</label><input id="kontak_darurat" name="kontak_darurat" class="form-control mb-2"></div>
+                            <div class="col-md-6"><label>Hubungan Kontak Darurat</label><input id="hubungan_kontak_darurat" name="hubungan_kontak_darurat" class="form-control mb-2"></div>
+                            <div class="col-md-6"><label>Nomor Paspor</label><input id="nomor_paspor" name="nomor_paspor" class="form-control mb-2"></div>
+                            <div class="col-md-6"><label>Tempat Penerbitan</label><input id="tempat_penerbitan_paspor" name="tempat_penerbitan_paspor" class="form-control mb-2"></div>
+                            <div class="col-md-6"><label>Tanggal Terbit Paspor</label><input type="date" id="tanggal_terbit_paspor" name="tanggal_terbit_paspor" class="form-control mb-2"></div>
+                            <div class="col-md-6"><label>Tanggal Kedaluwarsa Paspor</label><input type="date" id="tanggal_kedaluwarsa_paspor" name="tanggal_kedaluwarsa_paspor" class="form-control mb-2"></div>
+                            <div class="col-md-6"><label>Golongan Darah</label><select id="golongan_darah" name="golongan_darah" class="form-control mb-2"><option value="">Pilih</option><option>A</option><option>B</option><option>AB</option><option>O</option></select></div>
+                            <div class="col-md-6"><label>Scan Paspor</label><input type="file" name="scan_paspor" class="form-control-file mb-2"></div>
+                            <div class="col-md-6"><label>Riwayat Penyakit</label><textarea id="riwayat_penyakit" name="riwayat_penyakit" class="form-control"></textarea></div>
+                            <div class="col-md-6"><label>Alergi</label><textarea id="alergi" name="alergi" class="form-control"></textarea></div>
+                            <div class="col-md-6 mt-2"><label>Foto Profil</label><input type="file" name="foto_profil" class="form-control-file"></div>
+
                         </div>
 
                     </div>
@@ -158,20 +172,81 @@
 
     {{-- ================= MODAL DETAIL ================= --}}
     <div class="modal fade" id="modalDetail">
-        <div class="modal-dialog">
-            <div class="modal-content p-3">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
 
-                <p><b>Nama:</b> <span id="dNama"></span></p>
-                <p><b>Email:</b> <span id="dEmail"></span></p>
-                <p><b>NIK:</b> <span id="dNik"></span></p>
-                <p><b>No HP:</b> <span id="dTelp"></span></p>
-                <p><b>TTL:</b> <span id="dTTL"></span></p>
-                <p><b>Alamat:</b> <span id="dAlamat"></span></p>
-                <p><b>Pekerjaan:</b> <span id="dPekerjaan"></span></p>
-                <p><b>Status Nikah:</b> <span id="dNikah"></span></p>
+                <div class="modal-header bg-white">
+                    <div>
+                        <h4 class="mb-0 font-weight-bold">
+                            Detail Data Jemaah
+                        </h4>
+                        <small class="text-muted">
+                            Informasi lengkap jemaah
+                        </small>
+                    </div>
+
+                    <button class="close" data-dismiss="modal">
+                        &times;
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <div class="col-md-6">
+                                    <label class="text-muted mb-1">Nama</label>
+                                    <h5 id="dNama"></h5>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="text-muted mb-1">Email</label>
+                                    <h5 id="dEmail"></h5>
+                                </div>
+
+                                <div class="col-md-6 mt-3">
+                                    <label class="text-muted">Status Data</label>
+                                    <div id="dStatus"></div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div id="dMore"></div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-light" data-dismiss="modal">
+                        Tutup
+                    </button>
+                </div>
 
             </div>
         </div>
+    </div>
+
+    <div class="modal fade" id="modalStatusData">
+        <div class="modal-dialog"><div class="modal-content">
+            <form id="formStatusData">@csrf
+                <div class="modal-header"><h5>Verifikasi Data Jemaah</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+                <div class="modal-body">
+                    <label>Status Data</label>
+                    <select name="status_data" class="form-control mb-3" required>
+                        <option value="terverifikasi">Terverifikasi</option>
+                        <option value="perlu_perbaikan">Perlu Perbaikan</option>
+                    </select>
+                    <label>Catatan Admin <small>(wajib jika perlu perbaikan)</small></label>
+                    <textarea name="catatan_admin" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary">Simpan Status Data</button></div>
+            </form>
+        </div></div>
     </div>
 
     @push('scripts')
@@ -227,6 +302,10 @@
                         name: 'users.status'
                     },
                     {
+                        data: 'statusData',
+                        name: 'data_jemaah.status_data'
+                    },
+                    {
                         data: 'operator',
                         name: 'operator.name'
                     },
@@ -268,6 +347,7 @@
                     $("#alamat").val(j.alamat || '');
                     $("#pekerjaan").val(j.pekerjaan || '');
                     $("#nikah").val(j.status_pernikahan || '');
+                    ['kontak_darurat','hubungan_kontak_darurat','nomor_paspor','tempat_penerbitan_paspor','tanggal_terbit_paspor','tanggal_kedaluwarsa_paspor','golongan_darah','riwayat_penyakit','alergi'].forEach(k => $("#" + k).val(j[k] || ''));
 
                     $("#modalJemaah").modal("show");
                 });
@@ -278,11 +358,32 @@
             $("#formJemaah").submit(function(e) {
                 e.preventDefault();
 
-                $.post($(this).attr("action"), $(this).serialize(), res => {
-                    $("#modalJemaah").modal("hide");
-                    Swal.fire("Success", res.message, "success");
-                    dt.ajax.reload();
+                $.ajax({
+                    url: $(this).attr("action"), method: "POST",
+                    data: new FormData(this), processData: false, contentType: false,
+                    success: res => {
+                        $("#modalJemaah").modal("hide");
+                        Swal.fire("Success", res.message, "success");
+                        dt.ajax.reload();
+                    },
+                    error: xhr => Swal.fire("Data belum valid", xhr.responseJSON?.message || "Periksa kembali form.", "error")
                 });
+            });
+
+            let statusDataId;
+            $(document).on("click", ".toggleData", function() {
+                statusDataId = $(this).data("id");
+                $.get('/jemaah/detail/' + statusDataId, res => {
+                    $('#formStatusData [name=status_data]').val(res.jemaah?.status_data || 'menunggu_verifikasi');
+                    $('#formStatusData [name=catatan_admin]').val(res.jemaah?.catatan_admin || '');
+                    $('#modalStatusData').modal('show');
+                });
+            });
+            $('#formStatusData').submit(function(e) {
+                e.preventDefault();
+                $.post('/jemaah/toggle-data/' + statusDataId, $(this).serialize())
+                    .done(res => { $('#modalStatusData').modal('hide'); Swal.fire("Success", res.message, "success"); dt.ajax.reload(); })
+                    .fail(xhr => Swal.fire("Data belum valid", xhr.responseJSON?.message || "Periksa catatan admin.", "error"));
             });
 
             // DELETE
@@ -333,21 +434,182 @@
 
                 $.get('/jemaah/detail/' + id, res => {
 
-                    let j = res.jemaah;
+                    let j = res.jemaah || {};
 
                     $("#dNama").text(res.name);
                     $("#dEmail").text(res.email);
+                    $("#dStatus").html(`
+                        <span class="badge badge-${j.status_data == 'terverifikasi' ? 'success' : (j.status_data == 'perlu_perbaikan' ? 'danger' : 'warning')}">
+                            ${j.status_data.replaceAll('_', ' ').toUpperCase()}
+                        </span>
+                    `);
                     $("#dNik").text(j.nik);
                     $("#dTelp").text(j.no_telepon);
-                    $("#dTTL").text(j.tempat_lahir + ', ' + j.tanggal_lahir);
+                    $("#dTTL").text((j.tempat_lahir + ', ' + j.tanggal_lahir) ?? '-');
                     $("#dAlamat").text(j.alamat);
                     $("#dPekerjaan").text(j.pekerjaan);
                     $("#dNikah").text(j.status_pernikahan);
+                    const labels = {
+                        jenis_kelamin:'Jenis Kelamin', kontak_darurat:'Kontak Darurat',
+                        hubungan_kontak_darurat:'Hubungan Kontak', nomor_paspor:'Nomor Paspor',
+                        tanggal_terbit_paspor:'Tanggal Terbit', tanggal_kedaluwarsa_paspor:'Tanggal Kedaluwarsa',
+                        tempat_penerbitan_paspor:'Tempat Penerbitan', golongan_darah:'Golongan Darah',
+                        riwayat_penyakit:'Riwayat Penyakit', alergi:'Alergi', status_data:'Status Data',
+                        catatan_admin:'Catatan Admin'
+                    };
+
+                    $("#dMore").html(`
+
+                        <div class="card shadow-sm border-0 mb-3">
+                            <div class="card-header bg-white">
+                                <b>Data Pribadi</b>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    ${item("NIK", j.nik)}
+                                    ${item("Jenis Kelamin", j.jenis_kelamin)}
+                                    ${item("Tempat, Tanggal Lahir", (j.tempat_lahir + ', ' + j.tanggal_lahir) ?? '-')}
+                                    ${item("No HP", j.no_telepon)}
+                                    ${item("Status Pernikahan", j.status_pernikahan)}
+                                    ${item("Pekerjaan", j.pekerjaan)}
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm border-0 mb-3">
+
+                            <div class="card-header bg-white">
+                                <b>Alamat</b>
+                            </div>
+
+                            <div class="card-body">
+                                ${j.alamat ?? '-'}
+                            </div>
+
+                        </div>
+
+                        <div class="card shadow-sm border-0 mb-3">
+
+                            <div class="card-header bg-white">
+                                <b>Informasi Paspor</b>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    ${item("Nomor Paspor", j.nomor_paspor)}
+                                    ${item("Tempat Terbit", j.tempat_penerbitan_paspor)}
+                                    ${item("Tanggal Terbit", j.tanggal_terbit_paspor)}
+                                    ${item("Tanggal Kadaluarsa", j.tanggal_kedaluwarsa_paspor)}
+
+                                    <div class="col-md-6 mb-3">
+                                        <small class="text-muted d-block">
+                                            Scan Paspor
+                                        </small>
+
+                                        ${
+                                            j.scan_paspor
+                                            ? `<a target="_blank"
+                                                class="btn btn-outline-primary btn-sm mt-2"
+                                                href="/storage/${j.scan_paspor}">
+                                                Lihat Dokumen
+                                            </a>`
+                                            : '-'
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="card shadow-sm border-0 mb-3">
+
+                            <div class="card-header bg-white">
+                                <b>Informasi Kesehatan</b>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    ${item("Golongan Darah", j.golongan_darah)}
+                                    ${item("Riwayat Penyakit", j.riwayat_penyakit)}
+                                    ${item("Alergi", j.alergi)}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+
+                            <div class="card-header bg-white">
+                                <b>Kontak Darurat</b>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    ${item("Nama", j.kontak_darurat)}
+                                    ${item("Hubungan", j.hubungan_kontak_darurat)}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+
+                            <div class="card-header bg-white">
+                                <b>Catatan Admin</b>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="border rounded p-3 bg-light">
+                                    ${j.catatan_admin ?? '-'}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `);
 
                     $("#modalDetail").modal("show");
                 });
 
             });
+
+            function item(label, value){
+                return `
+                <div class="col-md-6 mb-3">
+                    <small class="text-muted d-block">${label}</small>
+                    <strong>${value || '-'}</strong>
+                </div>
+                `;
+            }
+
+            function item(label, value){
+                return `
+                <div class="col-md-6 mb-3">
+                    <small class="text-muted d-block">${label}</small>
+                    <strong>${value || '-'}</strong>
+                </div>
+                `;
+            }
         </script>
     @endpush
 

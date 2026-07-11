@@ -33,6 +33,9 @@
                                     <h5 style="margin:0">{{ $n->data['title'] ?? class_basename($n->type) }}</h5>
                                     <p style="margin:0">{{ $n->data['message'] ?? '' }}</p>
                                     <small class="text-muted">{{ $n->created_at->diffForHumans() }}</small>
+                                    @if(!empty($n->data['url']))
+                                        <a href="{{ $n->data['url'] }}" class="d-block mt-1">Lihat detail</a>
+                                    @endif
                                 </div>
                                 <div class="ml-3">
                                     @if (!$n->read_at)

@@ -63,18 +63,10 @@ class LoginController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
                 'email' => 'required|email|unique:users,email',
+                'no_telepon' => 'required|string|max:20',
                 'password' => 'required|min:6|confirmed',
-
-                'nik' => 'required|unique:data_jemaah,nik',
-                'jenis_kelamin' => 'required',
-                'no_telepon' => 'required',
-                'tempat_lahir' => 'required',
-                'tanggal_lahir' => 'required|date',
-                'alamat' => 'required',
-                'status_pernikahan' => 'required',
             ], [
                 'email.unique' => 'Email sudah terdaftar',
-                'nik.unique' => 'NIK sudah digunakan',
                 'password.confirmed' => 'Konfirmasi password tidak cocok'
             ]);
 
@@ -98,14 +90,8 @@ class LoginController extends Controller
             // CREATE JEMAAH
             DB::table('data_jemaah')->insert([
                 'user_id' => $user->id,
-                'nik' => $request->nik,
-                'jenis_kelamin' => $request->jenis_kelamin,
                 'no_telepon' => $request->no_telepon,
-                'tempat_lahir' => $request->tempat_lahir,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'alamat' => $request->alamat,
-                'pekerjaan' => $request->pekerjaan,
-                'status_pernikahan' => $request->status_pernikahan,
+                'status_data' => 'belum_lengkap',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

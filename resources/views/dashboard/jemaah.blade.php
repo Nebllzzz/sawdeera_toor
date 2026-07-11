@@ -260,9 +260,9 @@
                     </div>
 
                     <div class="small mt-2">
-                        {{ $latestPayment->jenis_pembayaran ?? '-' }}
+                        {{ isset($latestPayment) ? ucwords(str_replace('_', ' ', $latestPayment->jenis_pembayaran)) : '-' }}
                         •
-                        {{ $latestPayment->metode_pembayaran ?? '-' }}
+                        {{ $latestPayment?->jumlah_tahap ?? '-' }} tahap
                     </div>
 
                 </div>
@@ -336,7 +336,7 @@
                             </div>
 
                             <div class="summary-desc">
-                                KTP • Paspor • Visa • Vaksin
+                                KTP • Paspor • Visa • Vaksin • Kartu Keluarga @if(($jemaah->status_pernikahan ?? null) === 'menikah') • Buku Nikah @endif • Foto 4×6
                             </div>
 
                         </div>
@@ -508,7 +508,7 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <a href="/paket" class="quick-action">
+                            <a href="/paket-umrah-jemaah" class="quick-action">
 
                                 <div class="quick-action-icon" style="background:#4B7BEC;">
                                     <i class="fas fa-box-open"></i>
@@ -595,11 +595,11 @@
                                     <div class="timeline-title">
 
                                         Pembayaran
-                                        {{ $p->jenis_pembayaran }}
+                                        {{ ucwords(str_replace('_', ' ', $p->jenis_pembayaran)) }}
 
                                         •
 
-                                        Rp {{ number_format($p->jumlah, 0, ',', '.') }}
+                                        Rp {{ number_format($p->total_tagihan ?? $p->jumlah, 0, ',', '.') }}
 
                                     </div>
 
@@ -714,19 +714,27 @@
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['KTP', 'Paspor', 'Visa', 'Vaksin'],
+                    labels: ['KTP', 'Paspor', 'Visa', 'Vaksin', 'Kartu Keluarga', @if(($jemaah->status_pernikahan ?? null) === 'menikah') 'Buku Nikah', @endif 'Foto 4×6'],
                     datasets: [{
                         data: [
                             {{ ($docStatus['ktp'] ?? '') === 'diverifikasi' ? 1 : 0 }},
                             {{ ($docStatus['paspor'] ?? '') === 'diverifikasi' ? 1 : 0 }},
                             {{ ($docStatus['visa'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            {{ ($docStatus['vaksin'] ?? '') === 'diverifikasi' ? 1 : 0 }}
+                            {{ ($docStatus['vaksin'] ?? '') === 'diverifikasi' ? 1 : 0 }},
+                            {{ ($docStatus['kartu_keluarga'] ?? '') === 'diverifikasi' ? 1 : 0 }},
+                            @if(($jemaah->status_pernikahan ?? null) === 'menikah')
+                            {{ ($docStatus['buku_nikah'] ?? '') === 'diverifikasi' ? 1 : 0 }},
+                            @endif
+                            {{ ($docStatus['foto_4x6'] ?? '') === 'diverifikasi' ? 1 : 0 }}
                         ],
                         backgroundColor: [
                             '#E8B56A',
                             '#D89B42',
                             '#C8743C',
-                            '#9C5227'
+                            '#9C5227',
+                            '#6C7A40',
+                            '#4B7BEC',
+                            '#8B5A2B'
                         ],
                         borderRadius: 8
                     }]

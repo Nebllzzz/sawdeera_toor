@@ -2,94 +2,268 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KeberangkatanJemaah;
-use App\Models\PaketUmrah;
 use App\Models\Keberangkatan;
+use App\Models\KeberangkatanJemaah;
+use App\Models\Maskapai;
+use App\Models\PaketUmrah;
+use App\Models\Pembayaran;
+use App\Models\User;
+use App\Notifications\PaymentUploadedToAdmin;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class KeberangkatanJemaahController extends Controller
 {
-    public function index()
+    private const SCHEMES = [
+        'sekali_bayar' => ['steps' => 1, 'minimum_days' => 0, 'label' => 'Satu Kali Bayar'],
+        'cicilan_3_bulan' => ['steps' => 3, 'minimum_days' => 60, 'label' => '3 Bulan Cicilan'],
+        'cicilan_6_bulan' => ['steps' => 6, 'minimum_days' => 150, 'label' => '6 Bulan Cicilan'],
+        'cicilan_12_bulan' => ['steps' => 12, 'minimum_days' => 330, 'label' => '12 Bulan Cicilan'],
+    ];
+
+    public function index(Request $request)
     {
-        $jemaah = auth()->user()->jemaah;
-        $keberangkatanJemaah = KeberangkatanJemaah::with(['keberangkatan.maskapaiBerangkat', 'keberangkatan.maskapaiPulang', 'keberangkatan.leader', 'paketUmrah'])
-            ->where('jemaah_id', $jemaah->id)->get();
-        return view('home.keberangkatan-jemaah.index', compact('keberangkatanJemaah'));
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $pengajuan = $this->currentPengajuan();
+
+        return view('home.keberangkatan-jemaah.index', [
+            'mode' => 'departure',
+            'pengajuan' => $pengajuan,
+        ]);
     }
 
-    public function store(Request $request)
+    public function paketIndex(Request $request)
     {
-        $request->validate([
-            'keberangkatan_id' => 'required|exists:keberangkatan,id',
-            'paket_umrah_id' => 'required|exists:paket_umrah,id'
-        ]);
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $pengajuan = $this->currentPengajuan();
 
-        $jemaahId = auth()->user()->jemaah->id;
-
-        // Prevent duplicate
-        $existing = KeberangkatanJemaah::where([
-            'jemaah_id' => $jemaahId,
-            'keberangkatan_id' => $request->keberangkatan_id,
-            'paket_umrah_id' => $request->paket_umrah_id
-        ])->first();
-
-        if ($existing) {
-            return response()->json(['message' => 'Anda sudah terdaftar pada jadwal ini'], 400);
+        $query = PaketUmrah::with(['hotelMakkah', 'hotelMadinah'])->where('is_active', true);
+        if ($search = trim((string) $request->search)) {
+            $query->where('nama_paket', 'like', "%{$search}%");
+        }
+        if ($request->filled('durasi')) {
+            $query->where('durasi', $request->integer('durasi'));
+        }
+        if ($request->filled('harga')) {
+            match ($request->harga) {
+                'under_25' => $query->where('harga', '<', 25000000),
+                '25_35' => $query->whereBetween('harga', [25000000, 35000000]),
+                'over_35' => $query->where('harga', '>', 35000000),
+                default => null,
+            };
+        }
+        if ($request->filled('maskapai')) {
+            $durasiMaskapai = Keberangkatan::whereIn('status', ['pendaftaran', 'persiapan'])
+                ->where(fn ($q) => $q->where('maskapai_berangkat_id', $request->integer('maskapai'))
+                    ->orWhere('maskapai_pulang_id', $request->integer('maskapai')))
+                ->get()->map(fn ($k) => (int) $k->tanggal_keberangkatan->diffInDays($k->tanggal_pulang) + 1)
+                ->unique();
+            $query->whereIn('durasi', $durasiMaskapai);
         }
 
-        KeberangkatanJemaah::create([
-            'jemaah_id' => $jemaahId,
-            'keberangkatan_id' => $request->keberangkatan_id,
-            'paket_umrah_id' => $request->paket_umrah_id,
-            'status' => 'aktif'
-        ]);
+        $pakets = $query->orderBy('harga')->paginate(8)->withQueryString();
+        $durations = PaketUmrah::where('is_active', true)->distinct()->orderBy('durasi')->pluck('durasi');
+        $maskapais = Maskapai::orderBy('nama')->get();
 
-        return response()->json(['message' => 'Jadwal berhasil ditambahkan!']);
+        return view('home.keberangkatan-jemaah.index', compact('pengajuan', 'pakets', 'durations', 'maskapais') + [
+            'mode' => 'packages',
+        ]);
+    }
+
+    public function paketDetail($id)
+    {
+        $paket = PaketUmrah::with(['hotelMakkah', 'hotelMadinah', 'fasilitas', 'program'])
+            ->where('is_active', true)->findOrFail($id);
+
+        return response()->json([
+            'paket' => $paket,
+            'keberangkatan' => $this->availableSchedules($paket),
+            'can_apply' => !$this->hasActivePengajuan(),
+        ]);
     }
 
     public function jadwalByPaket($paketId, $durasi)
     {
-        $jadwal = Keberangkatan::with(['maskapaiBerangkat', 'maskapaiPulang'])
-            ->whereIn('status', ['pendaftaran', 'persiapan'])
-            ->whereRaw('DATEDIFF(tanggal_pulang, tanggal_keberangkatan) + 1 BETWEEN ? - 1 AND ? + 1', [$durasi, $durasi])
-            ->get(['id', 'tanggal_keberangkatan', 'tanggal_pulang', 'maskapai_berangkat_id', 'maskapai_pulang_id']);
+        $paket = PaketUmrah::where('is_active', true)->findOrFail($paketId);
+        abort_unless((int) $paket->durasi === (int) $durasi, 422);
+
+        $jadwal = $this->availableSchedules($paket)
+            ->map(function ($item) {
+                $days = (int) today()->diffInDays($item->tanggal_keberangkatan, false);
+                $item->days_remaining = $days;
+                $item->available_schemes = collect(self::SCHEMES)
+                    ->filter(fn ($scheme) => $days >= $scheme['minimum_days'])
+                    ->map(fn ($scheme, $key) => ['value' => $key, ...$scheme])
+                    ->values();
+                return $item;
+            })->values();
+
         return response()->json($jadwal);
     }
 
-    public function edit($id)
+    public function store(Request $request)
     {
-        $jadwal = KeberangkatanJemaah::with(['keberangkatan', 'paketUmrah'])->findOrFail($id);
-        if ($jadwal->keberangkatan->status != 'pendaftaran') {
-            abort(403);
-        }
-        $html = view('home.keberangkatan-jemaah._edit_form', compact('jadwal'))->render();
-        return response()->json(['html' => $html]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $jadwal = KeberangkatanJemaah::findOrFail($id);
-        if ($jadwal->keberangkatan->status != 'pendaftaran') {
-            return response()->json(['message' => 'Tidak bisa edit'], 403);
-        }
-
-        $request->validate([
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $data = $request->validate([
+            'keberangkatan_id' => 'required|exists:keberangkatan,id',
             'paket_umrah_id' => 'required|exists:paket_umrah,id',
-            'keberangkatan_id' => 'required|exists:keberangkatan,id'
+            'jenis_pembayaran' => ['required', Rule::in(array_keys(self::SCHEMES))],
+            'dp_persen' => 'nullable|required_unless:jenis_pembayaran,sekali_bayar|integer|in:15,30',
         ]);
 
-        $jadwal->update($request->only(['paket_umrah_id', 'keberangkatan_id']));
-        return response()->json(['message' => 'Jadwal berhasil diupdate']);
+        $jemaah = auth()->user()->jemaah;
+        abort_unless($jemaah, 422, 'Lengkapi Pendaftaran Saya terlebih dahulu.');
+        if (KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->where('status', 'aktif')->exists()) {
+            return response()->json(['message' => 'Anda sudah memiliki pengajuan keberangkatan aktif.'], 422);
+        }
+
+        $paket = PaketUmrah::where('is_active', true)->findOrFail($data['paket_umrah_id']);
+        $jadwal = Keberangkatan::whereIn('status', ['pendaftaran', 'persiapan'])
+            ->whereDate('tanggal_keberangkatan', '>', today())
+            ->findOrFail($data['keberangkatan_id']);
+        $actualDuration = (int) $jadwal->tanggal_keberangkatan->diffInDays($jadwal->tanggal_pulang) + 1;
+        abort_unless($actualDuration === (int) $paket->durasi, 422, 'Jadwal tidak sesuai dengan durasi paket.');
+
+        $scheme = self::SCHEMES[$data['jenis_pembayaran']];
+        $days = today()->diffInDays($jadwal->tanggal_keberangkatan, false);
+        if ($days < $scheme['minimum_days']) {
+            return response()->json([
+                'message' => "Skema {$scheme['label']} hanya tersedia minimal {$scheme['minimum_days']} hari sebelum keberangkatan.",
+            ], 422);
+        }
+
+        $payment = DB::transaction(function () use ($data, $jemaah, $paket, $jadwal, $scheme) {
+            $pengajuan = KeberangkatanJemaah::create([
+                'jemaah_id' => $jemaah->id,
+                'keberangkatan_id' => $jadwal->id,
+                'paket_umrah_id' => $paket->id,
+                'status' => 'aktif',
+            ]);
+
+            $payment = Pembayaran::create([
+                'keberangkatan_jemaah_id' => $pengajuan->id,
+                'jemaah_id' => $jemaah->id,
+                'keberangkatan_id' => $jadwal->id,
+                'total_tagihan' => $paket->harga,
+                'jumlah' => null,
+                'jenis_pembayaran' => $data['jenis_pembayaran'],
+                'dp_persen' => $scheme['steps'] === 1 ? null : $data['dp_persen'],
+                'jumlah_tahap' => $scheme['steps'],
+                'status' => 'belum_bayar',
+                'status_rencana' => 'aktif',
+            ]);
+
+            foreach ($this->buildInstallments(
+                (float) $paket->harga,
+                $scheme['steps'],
+                $scheme['steps'] === 1 ? 100 : (int) $data['dp_persen'],
+                $jadwal->tanggal_keberangkatan
+            ) as $installment) {
+                $payment->tahapan()->create($installment);
+            }
+            return $payment;
+        });
+
+        $this->notifyStaff(
+            'Pengajuan Keberangkatan Baru',
+            auth()->user()->name." mengajukan {$paket->nama_paket} dengan skema {$scheme['label']}.",
+            ['pembayaran_id' => $payment->id, 'url' => "/admin/pemabayan/{$payment->id}/detail"]
+        );
+        auth()->user()->notify(new \App\Notifications\PaymentStatusUpdatedToJemaah([
+            'title' => 'Pengajuan Keberangkatan Berhasil',
+            'message' => "Paket {$paket->nama_paket} berhasil diajukan. Rencana {$scheme['label']} telah dibuat.",
+            'pembayaran_id' => $payment->id,
+            'url' => '/pemabayan',
+        ]));
+
+        return response()->json([
+            'message' => 'Pengajuan berhasil. Rencana pembayaran sudah dibuat.',
+            'redirect' => '/pemabayan',
+        ]);
     }
 
-    public function destroy($id)
+    private function buildInstallments(float $total, int $steps, int $dp, Carbon $departure): array
     {
-        $jadwal = KeberangkatanJemaah::findOrFail($id);
-        if ($jadwal->keberangkatan->status != 'pendaftaran') {
-            return response()->json(['message' => 'Tidak bisa hapus'], 403);
+        if ($steps === 1) {
+            return [[
+                'urutan' => 1, 'nama_tahap' => 'Pembayaran Penuh', 'persentase' => 100,
+                'nominal' => $total, 'jatuh_tempo' => today(), 'status' => 'belum_bayar',
+            ]];
         }
-        $jadwal->delete();
-        return response()->json(['message' => 'Jadwal dihapus']);
+
+        $finalDue = $departure->copy()->subDays(30)->startOfDay();
+        $start = today()->startOfDay();
+        $remainingPercent = 100 - $dp;
+        $basePercent = round($remainingPercent / ($steps - 1), 4);
+        $result = [];
+        $usedNominal = 0;
+        $usedPercent = 0;
+
+        for ($i = 1; $i <= $steps; $i++) {
+            $percent = $i === 1 ? $dp : ($i === $steps ? 100 - $usedPercent : $basePercent);
+            $nominal = $i === $steps ? $total - $usedNominal : round($total * $percent / 100, 2);
+            $ratio = ($i - 1) / ($steps - 1);
+            $due = $start->copy()->addDays((int) round($start->diffInDays($finalDue) * $ratio));
+            $result[] = [
+                'urutan' => $i,
+                'nama_tahap' => $i === 1 ? 'DP (Pembayaran 1)' : ($i === $steps ? 'Pelunasan' : "Cicilan {$i}"),
+                'persentase' => $percent,
+                'nominal' => $nominal,
+                'jatuh_tempo' => $due,
+                'status' => 'belum_bayar',
+            ];
+            $usedPercent += $percent;
+            $usedNominal += $nominal;
+        }
+        return $result;
+    }
+
+    private function availableSchedules(PaketUmrah $paket)
+    {
+        return Keberangkatan::with(['maskapaiBerangkat', 'maskapaiPulang', 'leader'])
+            ->whereIn('status', ['pendaftaran', 'persiapan'])
+            ->whereDate('tanggal_keberangkatan', '>', today())
+            ->orderBy('tanggal_keberangkatan')
+            ->get()
+            ->filter(function ($item) use ($paket) {
+                if (!$item->tanggal_keberangkatan || !$item->tanggal_pulang) {
+                    return false;
+                }
+
+                $duration = (int) $item->tanggal_keberangkatan
+                    ->diffInDays($item->tanggal_pulang) + 1;
+
+                return $duration === (int) $paket->durasi;
+            })
+            ->values();
+    }
+
+    private function notifyStaff(string $title, string $message, array $extra = []): void
+    {
+        foreach (User::whereIn('role', ['admin', 'operator'])->get() as $user) {
+            $user->notify(new PaymentUploadedToAdmin(compact('title', 'message') + $extra));
+        }
+    }
+
+    private function currentPengajuan(): ?KeberangkatanJemaah
+    {
+        $jemaah = auth()->user()->jemaah;
+
+        return $jemaah ? KeberangkatanJemaah::with([
+            'keberangkatan.maskapaiBerangkat', 'keberangkatan.maskapaiPulang',
+            'keberangkatan.leader', 'paketUmrah.hotelMakkah', 'paketUmrah.hotelMadinah',
+            'paketUmrah.fasilitas', 'paketUmrah.program', 'pembayaran.tahapan',
+        ])->where('jemaah_id', $jemaah->id)->latest('id')->first() : null;
+    }
+
+    private function hasActivePengajuan(): bool
+    {
+        $jemaah = auth()->user()->jemaah;
+
+        return $jemaah
+            ? KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->where('status', 'aktif')->exists()
+            : false;
     }
 }

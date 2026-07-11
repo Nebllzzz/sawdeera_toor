@@ -46,14 +46,10 @@
         /* GLOBAL BODY BACKGROUND */
 
         body {
-            background-color: #FFF8EE !important;
             font-family: 'Albert Sans', sans-serif;
         }
 
         /* content wrapper adminlte */
-        .content-wrapper {
-            background-color: #FFF8EE !important;
-        }
 
         /* card biar kontras */
         .card {
@@ -103,22 +99,27 @@
         }
 
         .main-sidebar {
-            background: #FAF1DE;
+            background: #1D1104;
         }
 
         /* sidebar text */
         .main-sidebar .nav-link {
-            color: #333 !important;
+            color: #B2A391 !important;
         }
+
+        .main-sidebar .nav-header {
+            color: #ffffff !important;
+        }
+
 
         /* sidebar text hover */
         .main-sidebar .nav-link:hover {
-            color: #000 !important;
+            color: #333 !important;
         }
 
         /* user panel text */
         .user-panel .info a {
-            color: #333 !important;
+            color: #B2A391 !important;
         }
 
         .main-sidebar .nav-link.active {
@@ -127,7 +128,7 @@
         }
 
         .brand-link {
-            background: #FAF1DE;
+            background: #1D1104;
             border-bottom: 1px solid #e6d8b8;
         }
 
@@ -152,7 +153,7 @@
 
         /* NAVBAR COLOR */
         .main-header.navbar {
-            background-color: #5C3A1A !important;
+            background-color: #ffffff !important;
         }
 
         /* text navbar */
@@ -204,6 +205,17 @@
             border-radius: 8px;
             margin-bottom: 4px;
         }
+
+        .account-menu {
+            min-width: 275px;
+            padding: 12px 0;
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(30, 23, 15, .15);
+        }
+        .account-menu .account-head { display:flex;align-items:center;gap:12px;padding:8px 18px 15px }
+        .account-avatar { width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff0f2;color:#ef4767;font-weight:700;object-fit:cover }
+        .account-menu .dropdown-item { padding:11px 20px;color:#17213c }
     </style>
 </head>
 
@@ -216,13 +228,13 @@
         </div>
 
         <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light py-4">
 
             {{-- LEFT --}}
             <ul class="navbar-nav">
 
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#" role="button" id="toggleSidebar">
+                <li class="ml-3">
+                    <a class="text-dark" data-widget="pushmenu" href="#" role="button" id="toggleSidebar">
 
                         <i class="fas fa-bars"></i>
 
@@ -232,12 +244,12 @@
             </ul>
 
             {{-- RIGHT --}}
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav ml-auto align-items-center">
 
                 {{-- Notifications dropdown --}}
                 @auth
                     <li class="nav-item dropdown">
-                        <a class="nav-link" data-toggle="dropdown" href="#" id="notificationsToggle"
+                        <a class="text-dark" data-toggle="dropdown" href="#" id="notificationsToggle"
                             aria-expanded="false">
                             <i class="fas fa-bell"></i>
                             <span id="notifBadge" class="badge badge-danger navbar-badge"
@@ -248,7 +260,7 @@
                             <div class="dropdown-divider"></div>
                             <div id="notifList" style="max-height:320px; overflow:auto;">
                                 @forelse(auth()->user()->notifications->take(10) as $notification)
-                                    <a href="#" class="dropdown-item">
+                                    <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item">
                                         <div class="media">
                                             <img src="{{ asset('img/logo-kecil.png') }}" alt="avatar"
                                                 class="img-size-50 mr-3 img-circle">
@@ -275,21 +287,34 @@
                     </li>
                 @endauth
 
-                <li class="nav-item">
-
-                    <a href="#" class="nav-link text-danger" onclick="logoutConfirm()">
-
-                        <i class="fas fa-sign-out-alt mr-1"></i>
-
-                    </a>
-
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
-
-                        @csrf
-
-                    </form>
-
-                </li>
+                @auth
+                    @php
+                        $navbarPhoto = auth()->user()->jemaah?->foto_profil;
+                    @endphp
+                    <li class="nav-item dropdown ml-4 mr-3">
+                        <a href="#" data-toggle="dropdown" aria-label="Menu akun">
+                            @if($navbarPhoto)
+                                <img src="{{ asset('storage/'.$navbarPhoto) }}" class="account-avatar" alt="Foto profil">
+                            @else
+                                <span class="account-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                            @endif
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right account-menu">
+                            <div class="account-head">
+                                @if($navbarPhoto)
+                                    <img src="{{ asset('storage/'.$navbarPhoto) }}" class="account-avatar" alt="">
+                                @else
+                                    <span class="account-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                                @endif
+                                <div><b class="d-block">{{ auth()->user()->name }}</b><small class="text-muted">{{ auth()->user()->email }}</small></div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ route('profile') }}" class="dropdown-item"><i class="far fa-user mr-2"></i>Profile</a>
+                            <a href="#" class="dropdown-item" onclick="logoutConfirm();return false"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</a>
+                        </div>
+                    </li>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
+                @endauth
 
             </ul>
 
@@ -311,23 +336,33 @@
             <!-- Sidebar -->
             <div class="sidebar">
 
-                {{-- USER PANEL --}}
+                {{-- USER PANEL
+                @php
+                    $fotoProfil = auth()->user()->jemaah?->foto_profil;
+                @endphp
+
                 <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
 
                     <div class="image flex-shrink-0">
 
-                        <div class="d-flex align-items-center justify-content-center rounded-circle elevation-1"
-                            style="
-                                width:40px;
-                                height:40px;
-                                background:linear-gradient(135deg,#6B3E20,#8B5A2B);
-                                color:white;
-                                font-size:18px;
-                            ">
-
-                            <i class="fas fa-user"></i>
-
-                        </div>
+                        @if ($fotoProfil)
+                            <img
+                                src="{{ asset('storage/' . $fotoProfil) }}"
+                                class="rounded-circle elevation-1"
+                                style="width:40px;height:40px;object-fit:cover;"
+                                alt="Foto Profil">
+                        @else
+                            <div class="d-flex align-items-center justify-content-center rounded-circle elevation-1"
+                                style="
+                                    width:40px;
+                                    height:40px;
+                                    background:linear-gradient(135deg,#6B3E20,#8B5A2B);
+                                    color:white;
+                                    font-size:18px;
+                                ">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        @endif
 
                     </div>
 
@@ -340,13 +375,10 @@
                                 overflow-wrap:anywhere;
                                 line-height:1.2;
                             ">
-
                             {{ auth()->user()->name }}
-
                         </a>
 
-                        <small class="text-muted text-capitalize d-block">
-
+                        <small class="text-white text-capitalize d-block">
                             @if (auth()->user()->role === 'admin')
                                 Pimpinan
                             @elseif(auth()->user()->role === 'operator')
@@ -354,12 +386,11 @@
                             @else
                                 {{ auth()->user()->role }}
                             @endif
-
                         </small>
 
                     </div>
 
-                </div>
+                </div> --}}
 
                 @include('layouts.sidebar')
 
@@ -489,7 +520,7 @@
                         // prepend notification item
                         const item = document.createElement('a');
                         item.className = 'dropdown-item';
-                        item.href = '#';
+                        item.href = notification.url ?? (notification.data && notification.data.url) ?? '#';
                         const html = `
                             <div class="media">
                                 <img src="/img/logo-kecil.png" alt="avatar" class="img-size-50 mr-3 img-circle">

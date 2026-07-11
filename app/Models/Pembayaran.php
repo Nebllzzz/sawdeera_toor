@@ -9,6 +9,11 @@ class Pembayaran extends Model
     protected $table = 'pembayaran';
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return ['total_tagihan' => 'decimal:2'];
+    }
+
     public function keberangkatanJemaah()
     {
         return $this->hasOne(
@@ -21,5 +26,15 @@ class Pembayaran extends Model
     public function jemaah()
     {
         return $this->belongsTo(DataJemaah::class, 'jemaah_id');
+    }
+
+    public function pengajuan()
+    {
+        return $this->belongsTo(KeberangkatanJemaah::class, 'keberangkatan_jemaah_id');
+    }
+
+    public function tahapan()
+    {
+        return $this->hasMany(PembayaranTahapan::class)->orderBy('urutan');
     }
 }
