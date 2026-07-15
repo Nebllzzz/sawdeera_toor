@@ -10,11 +10,13 @@
 
                 <div class="card mt-3">
 
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
 
                         <h3>Data Keberangkatan Jemaah</h3>
 
                         <button class="btn btn-sawdeera1" onclick="createKeberangkatan()">
+
+                            <i class="fas fa-plus mr-2 text-white"></i>
 
                             Tambah Jadwal
 

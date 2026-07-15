@@ -191,6 +191,11 @@
     <style>
         .registration-page {
             background: #fbf8f2 !important;
+            padding: 0;
+        }
+
+        .registration-page .content {
+            padding: 0;
         }
 
         .status-card,
@@ -199,8 +204,8 @@
         .empty-payment {
             background: #fff;
             border: 1px solid #eee7dc;
-            border-radius: 12px;
-            box-shadow: 0 3px 14px rgba(78, 53, 28, .06);
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(78, 53, 28, .06);
         }
 
         .status-card {
@@ -258,6 +263,10 @@
         }
 
         .btn-save {
+            min-height: 44px;
+            border-radius: 8px;
+        }
+
             background: #b9862c;
             color: #fff;
             border-radius: 7px;

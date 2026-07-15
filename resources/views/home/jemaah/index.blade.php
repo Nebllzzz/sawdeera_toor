@@ -10,11 +10,11 @@
                     <div class="col-lg-12">
 
                         <div class="card mt-3">
-                            <div class="card-header">
-                                <h2>Data Jemaah</h2>
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h2 class="mb-0">Data Jemaah</h2>
                                 <button class="btn btn-sawdeera1" onclick="createJemaah()" data-toggle="modal"
                                     data-target="#modalJemaah">
-                                    Tambah Data
+                                    <i class="fas fa-plus me-2 text-white"></i>Tambah Data
                                 </button>
                             </div>
 

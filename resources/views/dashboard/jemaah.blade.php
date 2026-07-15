@@ -15,7 +15,7 @@
         }
 
         .content-wrapper {
-            padding: 20px;
+            padding: 0;
         }
 
         .dashboard-card {

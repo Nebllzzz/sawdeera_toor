@@ -4,83 +4,223 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sawdeera Toor | @yield('title')</title>
 
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="/assets/plugins/fontawesome-free/css/all.min.css">
-    {{-- Font Albert Sans --}}
-    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <!-- Ionicons -->
-    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-    {{-- Bootstap Icons --}}
+    <base href="/" />
+    <link rel="shortcut icon" href="{{ asset('img/logo.png') }}" />
+
+    <link rel="stylesheet" href="{{ asset('assets-2/fonts/inter/inter.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Tempusdominus Bootstrap 4 -->
-    <link rel="stylesheet" href="/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
-    <!-- iCheck -->
-    <link rel="stylesheet" href="/assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-    <!-- JQVMap -->
-    <link rel="stylesheet" href="/assets/plugins/jqvmap/jqvmap.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="/assets/css/adminlte.min.css">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="/assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-    <!-- Daterange picker -->
-    <link rel="stylesheet" href="/assets/plugins/daterangepicker/daterangepicker.css">
-    <!-- summernote -->
-    <link rel="stylesheet" href="/assets/plugins/summernote/summernote-bs4.min.css">
+    <link href="{{ asset('assets-2/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets-2/plugins/select2/css/select2.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets-2/plugins/sweetalert2/css/sweetalert2.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets-2/plugins/global/plugins.bundle.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets-2/css/style.bundle.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
-    <!-- datatable -->
-    <link rel="stylesheet" href="{{ asset('assets/datatable/datatables.bundle.css') }}">
-    <!-- sweetalert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    {{-- csrf token --}}
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @yield('css')
+
     @auth
         <meta name="user-id" content="{{ auth()->id() }}">
     @endauth
+
+    <script>
+        var defaultThemeMode = "light";
+        var themeMode;
+        if (document.documentElement) {
+            if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
+                themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
+            } else if (localStorage.getItem("data-bs-theme") !== null) {
+                themeMode = localStorage.getItem("data-bs-theme");
+            } else {
+                themeMode = defaultThemeMode;
+            }
+            if (themeMode === "system") {
+                themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", themeMode);
+        }
+    </script>
+
     <style>
-        /* GLOBAL BODY BACKGROUND */
-
         body {
-            font-family: 'Albert Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
+            background: #FBF8F2;
         }
 
-        /* content wrapper adminlte */
+        @media (min-width: 992px) {
+            .wrapper {
+                padding-left: 280px !important;
+            }
 
-        /* card biar kontras */
+            .header-fixed[data-kt-sticky-header=on] .header {
+                left: 280px !important;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .wrapper {
+                padding-left: 0 !important;
+            }
+        }
+
+        .aside {
+            width: 280px !important;
+            background: #211408 !important;
+            border-right: 1px solid rgba(255,255,255,0.08) !important;
+        }
+
+        .aside .menu .menu-item .menu-link {
+            color: #d9cdbb !important;
+            border-radius: 10px;
+            margin: 2px 10px;
+        }
+
+        .aside .menu .menu-item .menu-link:hover,
+        .aside .menu .menu-item .menu-link.active {
+            background: linear-gradient(135deg, #6B3E20, #8B5A2B) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(107, 62, 32, 0.35);
+        }
+
+        .aside-logo {
+            background: #1D1104;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .aside-menu {
+            padding-top: 8px;
+        }
+
+        .aside-menu .hover-scroll-overlay-y {
+            height: calc(100vh - 140px) !important;
+            overflow-y: auto !important;
+
+            /* Tambahkan ini untuk menyembunyikan scrollbar */
+            -ms-overflow-style: none;  /* Untuk Internet Explorer dan Edge kuno */
+            scrollbar-width: none;     /* Untuk Firefox */
+        }
+
+        /* Tambahkan ini untuk Chrome, Safari, dan Opera */
+        .aside-menu .hover-scroll-overlay-y::-webkit-scrollbar {
+            display: none;
+        }
+
+        .menu-icon{
+            background: #E6C27A !important;
+            color: #211408 !important;
+        }
+
+        .header {
+            background: #fff !important;
+            border-bottom: 1px solid #e8e8e8;
+            height: 72px !important;
+            min-height: 72px;
+            padding: 0 1rem;
+        }
+
+        .content {
+            margin-top: 0 !important;
+            padding: 0 0 24px !important;
+        }
+
+        .app-content-container {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+
+        .account-menu {
+            min-width: 280px;
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .account-menu .account-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px 14px;
+        }
+
+        .account-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff0f2;
+            color: #ef4767;
+            font-weight: 700;
+            object-fit: cover;
+        }
+
+        .dropdown-item {
+            padding: 10px 18px;
+        }
+
+        .content-wrapper {
+            padding: 0;
+            background: transparent;
+        }
+
         .card {
-            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e4e6ef;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
         }
 
-        /* table tetap putih */
-        .table {
-            background: #ffffff;
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 64px;
+            padding: 1rem 1.25rem;
         }
 
-        div.dataTables_wrapper div.dataTables_processing {
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            background-color: #444 !important;
-            /* abu-abu gelap */
-            color: white !important;
-            font-weight: 500;
-            padding: 1rem 2rem !important;
-            text-align: center;
-            /* position */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-
+        .card-header h2,
+        .card-header h4 {
             margin: 0;
-            /* hilangkan margin agar tidak ganggu posisi */
-            width: auto;
-            /* biar ukurannya fleksibel sesuai konten */
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .card-header .btn-sawdeera1 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0.625rem 1rem !important;
+            border-radius: 10px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .card-header .btn-sawdeera1 i {
+            margin: 0 !important;
+            line-height: 1;
+        }
+
+        table .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px !important;
+            height: 36px !important;
+            padding: 0 !important;
+            border-radius: 10px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        table .btn-icon i {
+            margin: 0 !important;
+            line-height: 1;
         }
 
         .table-responsive {
@@ -97,360 +237,152 @@
             white-space: normal !important;
             word-break: break-word;
         }
-
-        .main-sidebar {
-            background: #1D1104;
-        }
-
-        /* sidebar text */
-        .main-sidebar .nav-link {
-            color: #B2A391 !important;
-        }
-
-        .main-sidebar .nav-header {
-            color: #ffffff !important;
-        }
-
-
-        /* sidebar text hover */
-        .main-sidebar .nav-link:hover {
-            color: #333 !important;
-        }
-
-        /* user panel text */
-        .user-panel .info a {
-            color: #B2A391 !important;
-        }
-
-        .main-sidebar .nav-link.active {
-            background: #e9d8a6;
-            color: #000;
-        }
-
-        .brand-link {
-            background: #1D1104;
-            border-bottom: 1px solid #e6d8b8;
-        }
-
-        /* BRAND SIDEBAR */
-        .brand-center {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px 0;
-        }
-
-        .brand-logo {
-            width: 180px;
-            height: auto;
-            opacity: 1;
-        }
-
-        /* hilangkan border bawaan adminlte */
-        .brand-link {
-            border-bottom: none !important;
-        }
-
-        /* NAVBAR COLOR */
-        .main-header.navbar {
-            background-color: #ffffff !important;
-        }
-
-        /* text navbar */
-        .main-header .nav-link {
-            color: #ffffff !important;
-        }
-
-        /* icon navbar */
-        .main-header .nav-link i {
-            color: #ffffff !important;
-        }
-
-        /* hover */
-        .main-header .nav-link:hover {
-            color: #f5e6d3 !important;
-        }
-
-        .sidebar .user-panel .info {
-            min-width: 0;
-            white-space: normal !important;
-            overflow: visible;
-        }
-
-        .sidebar .user-panel .info a {
-            white-space: normal !important;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-            line-height: 1.2;
-        }
-
-        .sidebar .user-panel .info small {
-            display: block;
-            white-space: normal;
-        }
-
-        .sidebar .nav-sidebar > .nav-item > .nav-link.active {
-            background: linear-gradient(135deg, #6B3E20, #8B5A2B) !important;
-            color: #ffffff !important;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(107, 62, 32, 0.35);
-        }
-
-        .sidebar .nav-sidebar > .nav-item > .nav-link.active .nav-icon,
-        .sidebar .nav-sidebar > .nav-item > .nav-link.active p {
-            color: #ffffff !important;
-        }
-
-        .sidebar .nav-sidebar > .nav-item > .nav-link {
-            border-radius: 8px;
-            margin-bottom: 4px;
-        }
-
-        .account-menu {
-            min-width: 275px;
-            padding: 12px 0;
-            border: 0;
-            border-radius: 18px;
-            box-shadow: 0 12px 35px rgba(30, 23, 15, .15);
-        }
-        .account-menu .account-head { display:flex;align-items:center;gap:12px;padding:8px 18px 15px }
-        .account-avatar { width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff0f2;color:#ef4767;font-weight:700;object-fit:cover }
-        .account-menu .dropdown-item { padding:11px 20px;color:#17213c }
     </style>
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed">
-    <div class="wrapper">
+<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-fixed aside-secondary-disabled">
+    <script>
+        var defaultThemeMode = "light";
+        var themeMode;
+        if (document.documentElement) {
+            if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
+                themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
+            } else if (localStorage.getItem("data-bs-theme") !== null) {
+                themeMode = localStorage.getItem("data-bs-theme");
+            } else {
+                themeMode = defaultThemeMode;
+            }
+            if (themeMode === "system") {
+                themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", themeMode);
+        }
+    </script>
 
-        <!-- Preloader -->
-        <div class="preloader flex-column justify-content-center align-items-center">
-            <img class="animation__shake" src="{{ asset('img/logo.png') }}" alt="Sawdeera Toor Logo">
-        </div>
-
-        <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-white navbar-light py-4">
-
-            {{-- LEFT --}}
-            <ul class="navbar-nav">
-
-                <li class="ml-3">
-                    <a class="text-dark" data-widget="pushmenu" href="#" role="button" id="toggleSidebar">
-
-                        <i class="fas fa-bars"></i>
-
+    <div class="d-flex flex-column flex-root">
+        <div class="page d-flex flex-row flex-column-fluid">
+            <div id="kt_aside" class="aside aside-light aside-hoverable">
+                <div class="aside-logo flex-column-auto px-8 py-8">
+                    <a href="/dashboard" class="d-flex align-items-center">
+                        <img src="{{ asset('img/logo.png') }}" alt="Sawdeera Toor" class="h-55px" />
                     </a>
-                </li>
+                </div>
 
-            </ul>
+                <div class="aside-menu flex-column-fluid">
+                    <div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper">
+                        @include('layouts.sidebar')
+                    </div>
+                </div>
+            </div>
 
-            {{-- RIGHT --}}
-            <ul class="navbar-nav ml-auto align-items-center">
+            <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+                <div class="header align-items-stretch">
+                    <div class="container-fluid d-flex align-items-stretch justify-content-between px-8">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-icon btn-active-color-primary me-3" id="kt_aside_toggle" type="button">
+                                <i class="ki-duotone ki-abstract-14 fs-2"></i>
+                            </button>
+                        </div>
 
-                {{-- Notifications dropdown --}}
-                @auth
-                    <li class="nav-item dropdown">
-                        <a class="text-dark" data-toggle="dropdown" href="#" id="notificationsToggle"
-                            aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span id="notifBadge" class="badge badge-danger navbar-badge"
-                                style="display: {{ auth()->user()->unreadNotifications->count() ? 'inline-block' : 'none' }};">{{ auth()->user()->unreadNotifications->count() }}</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="min-width:320px;">
-                            <span class="dropdown-header">Notifikasi</span>
-                            <div class="dropdown-divider"></div>
-                            <div id="notifList" style="max-height:320px; overflow:auto;">
-                                @forelse(auth()->user()->notifications->take(10) as $notification)
-                                    <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item">
-                                        <div class="media">
-                                            <img src="{{ asset('img/logo-kecil.png') }}" alt="avatar"
-                                                class="img-size-50 mr-3 img-circle">
-                                            <div class="media-body">
-                                                <h3 class="dropdown-item-title" style="font-size:14px; font-weight:600;">
-                                                    {{ $notification->data['title'] ?? class_basename($notification->type) }}
-                                                </h3>
-                                                <p class="text-sm" style="margin:0">
-                                                    {{ $notification->data['message'] ?? '' }}</p>
-                                                <p class="text-muted text-sm" style="margin:0">
-                                                    {{ $notification->created_at->diffForHumans() }}</p>
+                        <div class="d-flex align-items-center gap-3 py-3">
+                            @auth
+                                <div class="dropdown">
+                                    <a class="btn btn-icon btn-light btn-active-color-primary position-relative" href="#" data-bs-toggle="dropdown" id="notificationsToggle" aria-expanded="false">
+                                        <i class="fas fa-bell fs-4"></i>
+                                        <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style="display: {{ auth()->user()->unreadNotifications->count() ? 'inline-block' : 'none' }};">
+                                            {{ auth()->user()->unreadNotifications->count() }}
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg" style="min-width:320px;">
+                                        <span class="dropdown-header">Notifikasi</span>
+                                        <div class="dropdown-divider"></div>
+                                        <div id="notifList" style="max-height:320px; overflow:auto;">
+                                            @forelse(auth()->user()->notifications->take(10) as $notification)
+                                                <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item">
+                                                    <div class="d-flex align-items-start gap-3">
+                                                        <img src="{{ asset('img/logo-kecil.png') }}" alt="avatar" class="img-fluid rounded-circle" style="width:38px;height:38px;">
+                                                        <div>
+                                                            <div class="fw-semibold">{{ $notification->data['title'] ?? class_basename($notification->type) }}</div>
+                                                            <div class="text-muted small">{{ $notification->data['message'] ?? '' }}</div>
+                                                            <div class="text-muted small">{{ $notification->created_at->diffForHumans() }}</div>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                            @empty
+                                                <div class="px-3 py-2 text-muted">Tidak ada notifikasi</div>
+                                            @endforelse
+                                        </div>
+                                        <div class="dropdown-divider"></div>
+                                        <a href="{{ route('notifications.index') ?? '#' }}" class="dropdown-item text-primary">Lihat semua</a>
+                                    </div>
+                                </div>
+                            @endauth
+
+                            @auth
+                                @php
+                                    $navbarPhoto = auth()->user()->jemaah?->foto_profil;
+                                @endphp
+                                <div class="dropdown">
+                                    <a href="#" class="btn btn-icon btn-light btn-active-color-primary" data-bs-toggle="dropdown" aria-label="Menu akun">
+                                        @if($navbarPhoto)
+                                            <img src="{{ asset('storage/'.$navbarPhoto) }}" class="account-avatar" alt="Foto profil">
+                                        @else
+                                            <span class="account-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                                        @endif
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end account-menu">
+                                        <div class="account-head">
+                                            @if($navbarPhoto)
+                                                <img src="{{ asset('storage/'.$navbarPhoto) }}" class="account-avatar" alt="">
+                                            @else
+                                                <span class="account-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                                            @endif
+                                            <div>
+                                                <div class="fw-semibold">{{ auth()->user()->name }}</div>
+                                                <div class="text-muted small">{{ auth()->user()->email }}</div>
                                             </div>
                                         </div>
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                @empty
-                                    <div class="px-3 py-2 text-muted">Tidak ada notifikasi</div>
-                                @endforelse
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ route('notifications.index') ?? '#' }}" class="dropdown-item dropdown-footer">Lihat
-                                semua</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a href="{{ route('profile') }}" class="dropdown-item"><i class="far fa-user me-2"></i>Profile</a>
+                                        <a href="#" class="dropdown-item" onclick="logoutConfirm();return false"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a>
+                                    </div>
+                                </div>
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
+                            @endauth
                         </div>
-                    </li>
-                @endauth
-
-                @auth
-                    @php
-                        $navbarPhoto = auth()->user()->jemaah?->foto_profil;
-                    @endphp
-                    <li class="nav-item dropdown ml-4 mr-3">
-                        <a href="#" data-toggle="dropdown" aria-label="Menu akun">
-                            @if($navbarPhoto)
-                                <img src="{{ asset('storage/'.$navbarPhoto) }}" class="account-avatar" alt="Foto profil">
-                            @else
-                                <span class="account-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
-                            @endif
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right account-menu">
-                            <div class="account-head">
-                                @if($navbarPhoto)
-                                    <img src="{{ asset('storage/'.$navbarPhoto) }}" class="account-avatar" alt="">
-                                @else
-                                    <span class="account-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
-                                @endif
-                                <div><b class="d-block">{{ auth()->user()->name }}</b><small class="text-muted">{{ auth()->user()->email }}</small></div>
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ route('profile') }}" class="dropdown-item"><i class="far fa-user mr-2"></i>Profile</a>
-                            <a href="#" class="dropdown-item" onclick="logoutConfirm();return false"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</a>
-                        </div>
-                    </li>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
-                @endauth
-
-            </ul>
-
-        </nav>
-        <!-- /.navbar -->
-
-
-        <!-- Main Sidebar Container -->
-        <aside class="main-sidebar sidebar-light elevation-4">
-
-            {{-- BRAND --}}
-            <a href="/dashboard" class="brand-link d-flex align-items-center justify-content-center">
-
-                <img id="sidebarLogo" src="{{ asset('img/logo.png') }}" alt="Sawdeera Toor Logo" class="brand-image"
-                    style="max-height:55px; width:auto; opacity:.95;">
-
-            </a>
-
-            <!-- Sidebar -->
-            <div class="sidebar">
-
-                {{-- USER PANEL
-                @php
-                    $fotoProfil = auth()->user()->jemaah?->foto_profil;
-                @endphp
-
-                <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
-
-                    <div class="image flex-shrink-0">
-
-                        @if ($fotoProfil)
-                            <img
-                                src="{{ asset('storage/' . $fotoProfil) }}"
-                                class="rounded-circle elevation-1"
-                                style="width:40px;height:40px;object-fit:cover;"
-                                alt="Foto Profil">
-                        @else
-                            <div class="d-flex align-items-center justify-content-center rounded-circle elevation-1"
-                                style="
-                                    width:40px;
-                                    height:40px;
-                                    background:linear-gradient(135deg,#6B3E20,#8B5A2B);
-                                    color:white;
-                                    font-size:18px;
-                                ">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        @endif
-
                     </div>
+                </div>
 
-                    <div class="info" style="min-width:0;">
-
-                        <a href="#" class="d-block font-weight-semibold"
-                            style="
-                                white-space:normal;
-                                word-break:break-word;
-                                overflow-wrap:anywhere;
-                                line-height:1.2;
-                            ">
-                            {{ auth()->user()->name }}
-                        </a>
-
-                        <small class="text-white text-capitalize d-block">
-                            @if (auth()->user()->role === 'admin')
-                                Pimpinan
-                            @elseif(auth()->user()->role === 'operator')
-                                Admin
-                            @else
-                                {{ auth()->user()->role }}
-                            @endif
-                        </small>
-
+                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                    <div class="container-fluid app-content-container">
+                        @yield('content')
                     </div>
-
-                </div> --}}
-
-                @include('layouts.sidebar')
-
+                </div>
             </div>
-            <!-- /.sidebar -->
-
-        </aside>
-
-
-        <!-- Content Wrapper. Contains page content -->
-        @yield('content')
-        <!-- /.content-wrapper -->
-
-        <!-- Control Sidebar -->
-        <aside class="control-sidebar control-sidebar-dark">
-            <!-- Control sidebar content goes here -->
-        </aside>
-        <!-- /.control-sidebar -->
+        </div>
     </div>
-    <!-- ./wrapper -->
 
-    <!-- jQuery -->
-    <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
-    <!-- jQuery UI 1.11.4 -->
-    <script src="/assets/plugins/jquery-ui/jquery-ui.min.js"></script>
-    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
     <script>
-        $.widget.bridge('uibutton', $.ui.button)
+        var hostUrl = "{{ asset('assets-2') }}/";
     </script>
-    <!-- Bootstrap 4 -->
-    <script src="/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <!-- ChartJS -->
-    <script src="/assets/plugins/chart.js/Chart.min.js"></script>
-    <!-- Sparkline -->
-    <script src="/assets/plugins/sparklines/sparkline.js"></script>
-    <!-- jQuery Knob Chart -->
-    <script src="/assets/plugins/jquery-knob/jquery.knob.min.js"></script>
-    <!-- daterangepicker -->
-    <script src="/assets/plugins/moment/moment.min.js"></script>
-    <script src="/assets/plugins/daterangepicker/daterangepicker.js"></script>
-    <!-- Tempusdominus Bootstrap 4 -->
-    <script src="/assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
-    <!-- Summernote -->
-    <script src="/assets/plugins/summernote/summernote-bs4.min.js"></script>
-    <!-- overlayScrollbars -->
-    <script src="/assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-    <!-- AdminLTE App -->
-    <script src="/assets/js/adminlte.js"></script>
-    <!-- AdminLTE for demo purposes -->
-    <!-- <script src="/assets/js/demo.js"></script> -->
-    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-    <script src="/assets/js/pages/dashboard.js"></script>
-    <!-- datatable js -->
-    <script src="{{ asset('assets/datatable/datatables.bundle.js') }}"></script>
-    {{-- format price input --}}
+
+    <script src="{{ asset('assets-2/plugins/global/plugins.bundle.js') }}"></script>
+    <script src="{{ asset('assets-2/js/scripts.bundle.js') }}"></script>
+    <script src="{{ asset('assets-2/plugins/select2/js/select2.min.js') }}"></script>
+    <script src="{{ asset('assets-2/plugins/sweetalert2/js/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ asset('assets-2/plugins/custom/datatables/datatables.bundle.js') }}"></script>
+    <script src="{{ asset('assets-2/js/widgets.bundle.js') }}"></script>
+    <script src="{{ asset('assets-2/js/custom/widgets.js') }}"></script>
+    <script src="{{ asset('assets-2/js/custom/apps/chat/chat.js') }}"></script>
+    <script src="{{ asset('assets-2/js/custom/utilities/modals/upgrade-plan.js') }}"></script>
+    <script src="{{ asset('assets-2/js/custom/utilities/modals/create-app.js') }}"></script>
+    <script src="{{ asset('assets-2/js/custom/utilities/modals/users-search.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.6.0"></script>
-    {{-- format timestamp --}}
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.js"></script>
-    {{-- logout --}}
+
     <script>
         function logoutConfirm() {
             Swal.fire({
@@ -462,50 +394,9 @@
                 if (result.isConfirmed) {
                     document.getElementById('logout-form').submit();
                 }
-            })
+            });
         }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
 
-            const body = document.body;
-            const logo = document.getElementById('sidebarLogo');
-
-            function updateSidebarLogo() {
-
-                if (body.classList.contains('sidebar-collapse')) {
-
-                    logo.src = "{{ asset('img/logo-kecil.png') }}";
-
-                    logo.style.maxHeight = "40px";
-
-                } else {
-
-                    logo.src = "{{ asset('img/logo.png') }}";
-
-                    logo.style.maxHeight = "55px";
-
-                }
-
-            }
-
-            // initial
-            updateSidebarLogo();
-
-            // detect sidebar toggle
-            document.getElementById('toggleSidebar')
-                .addEventListener('click', function() {
-
-                    setTimeout(() => {
-                        updateSidebarLogo();
-                    }, 300);
-
-                });
-
-        });
-    </script>
-
-    <script>
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 const userMeta = document.querySelector('meta[name="user-id"]');
@@ -517,32 +408,31 @@
 
                 window.Echo.private(`App.Models.User.${userId}`)
                     .notification((notification) => {
-                        // prepend notification item
                         const item = document.createElement('a');
                         item.className = 'dropdown-item';
                         item.href = notification.url ?? (notification.data && notification.data.url) ?? '#';
-                        const html = `
-                            <div class="media">
-                                <img src="/img/logo-kecil.png" alt="avatar" class="img-size-50 mr-3 img-circle">
-                                <div class="media-body">
-                                    <h3 class="dropdown-item-title" style="font-size:14px; font-weight:600;">${notification.title ?? notification.type}</h3>
-                                    <p class="text-sm" style="margin:0">${notification.message ?? (notification.data && notification.data.message) ?? ''}</p>
-                                    <p class="text-muted text-sm" style="margin:0">Baru saja</p>
+                        item.innerHTML = `
+                            <div class="d-flex align-items-start gap-3">
+                                <img src="{{ asset('img/logo-kecil.png') }}" alt="avatar" class="img-fluid rounded-circle" style="width:38px;height:38px;">
+                                <div>
+                                    <div class="fw-semibold">${notification.title ?? notification.type}</div>
+                                    <div class="text-muted small">${notification.message ?? (notification.data && notification.data.message) ?? ''}</div>
+                                    <div class="text-muted small">Baru saja</div>
                                 </div>
                             </div>
                         `;
-                        item.innerHTML = html;
-                        if (list.children.length) list.insertBefore(item, list.firstChild);
-                        else list.appendChild(item);
+                        if (list && list.children.length) {
+                            list.insertBefore(item, list.firstChild);
+                        } else if (list) {
+                            list.appendChild(item);
+                        }
 
-                        // update badge
                         if (badge) {
                             const current = parseInt(badge.textContent || '0') || 0;
                             badge.textContent = current + 1;
                             badge.style.display = 'inline-block';
                         }
                     });
-
             } catch (e) {
                 // silent
             }

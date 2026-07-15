@@ -3,7 +3,7 @@
 
 @section('content')
 
-    <div class="content-wrapper px-3 py-4">
+    <div class="content-wrapper px-3">
 
         <style>
             :root {

@@ -8,11 +8,12 @@
             <div class="container-fluid">
 
                 <div class="card mt-3">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
 
                         <h3>Data Hotel</h3>
 
                         <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalHotel" onclick="createHotel()">
+                            <i class="fas fa-plus mr-2 text-white"></i>
                             Tambah Hotel
                         </button>
 

@@ -8,14 +8,16 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card mt-3">
-                        <div class="card-header">
-                            <h2>Data Admin</h2>
-                            <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalUser" onclick="createUser()">Tambah Data</button>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Data Admin</h2>
+                            <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalUser" onclick="createUser()">
+                                <i class="fas fa-plus mr-2 text-white"></i>Tambah Data
+                            </button>
                         </div>
                         <div class="card-body">
                             <div
                                 class="table-responsive">
-                                <table class="table table-striped text-center align-middle" id="dt">
+                                <table class="table table-hover align-middle" id="dt">
                                     <thead>
                                         <tr>
                                             <th>No</th>
