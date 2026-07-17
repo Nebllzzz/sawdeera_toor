@@ -434,6 +434,7 @@
         const btnEdit = document.getElementById('btnEditProfile');
         const btnCancel = document.getElementById('btnCancelEdit');
         const btnSave = document.getElementById('btnSaveProfile');
+        const profileForm = document.getElementById('profileForm');
         const inputs = document.querySelectorAll('.profile-input');
         const photoLabel = document.getElementById('photoUploadLabel');
         const fotoInput = document.getElementById('fotoProfilInput');
@@ -465,6 +466,14 @@
         btnCancel.addEventListener('click', function () {
             window.location.reload();
         });
+
+        if (profileForm) {
+            profileForm.addEventListener('submit', function () {
+                inputs.forEach(function (input) {
+                    input.disabled = false;
+                });
+            });
+        }
 
         if (fotoInput) {
             fotoInput.addEventListener('change', function (event) {

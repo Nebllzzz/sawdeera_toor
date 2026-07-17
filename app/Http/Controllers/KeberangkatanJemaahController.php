@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Keberangkatan;
 use App\Models\KeberangkatanJemaah;
+use App\Models\KeberangkatanJemaahReschedule;
 use App\Models\Maskapai;
 use App\Models\PaketUmrah;
 use App\Models\Pembayaran;
@@ -55,10 +56,13 @@ class KeberangkatanJemaahController extends Controller
             };
         }
         if ($request->filled('maskapai')) {
-            $durasiMaskapai = Keberangkatan::whereIn('status', ['pendaftaran', 'persiapan'])
+            $durasiMaskapai = Keberangkatan::whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
                 ->where(fn ($q) => $q->where('maskapai_berangkat_id', $request->integer('maskapai'))
                     ->orWhere('maskapai_pulang_id', $request->integer('maskapai')))
-                ->get()->map(fn ($k) => (int) $k->tanggal_keberangkatan->diffInDays($k->tanggal_pulang) + 1)
+                ->whereNotNull('paket_id')
+                ->with('paket')
+                ->get()->map(fn ($k) => (int) $k->paket?->durasi)
+                ->filter()
                 ->unique();
             $query->whereIn('durasi', $durasiMaskapai);
         }
@@ -115,16 +119,16 @@ class KeberangkatanJemaahController extends Controller
 
         $jemaah = auth()->user()->jemaah;
         abort_unless($jemaah, 422, 'Lengkapi Pendaftaran Saya terlebih dahulu.');
-        if (KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->where('status', 'aktif')->exists()) {
+        if (KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->whereIn('status', KeberangkatanJemaah::STATUSES)->exists()) {
             return response()->json(['message' => 'Anda sudah memiliki pengajuan keberangkatan aktif.'], 422);
         }
 
         $paket = PaketUmrah::where('is_active', true)->findOrFail($data['paket_umrah_id']);
-        $jadwal = Keberangkatan::whereIn('status', ['pendaftaran', 'persiapan'])
+        $jadwal = Keberangkatan::whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+            ->where('paket_id', $paket->id)
             ->whereDate('tanggal_keberangkatan', '>', today())
             ->findOrFail($data['keberangkatan_id']);
-        $actualDuration = (int) $jadwal->tanggal_keberangkatan->diffInDays($jadwal->tanggal_pulang) + 1;
-        abort_unless($actualDuration === (int) $paket->durasi, 422, 'Jadwal tidak sesuai dengan durasi paket.');
+        abort_unless(!$jadwal->isFull(), 422, 'Kuota jadwal ini sudah penuh.');
 
         $scheme = self::SCHEMES[$data['jenis_pembayaran']];
         $days = today()->diffInDays($jadwal->tanggal_keberangkatan, false);
@@ -139,7 +143,7 @@ class KeberangkatanJemaahController extends Controller
                 'jemaah_id' => $jemaah->id,
                 'keberangkatan_id' => $jadwal->id,
                 'paket_umrah_id' => $paket->id,
-                'status' => 'aktif',
+                'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
             ]);
 
             $payment = Pembayaran::create([
@@ -184,6 +188,93 @@ class KeberangkatanJemaahController extends Controller
         ]);
     }
 
+    public function approveSchedule()
+    {
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $pengajuan = $this->currentPengajuan();
+        abort_unless($pengajuan, 404, 'Pengajuan keberangkatan tidak ditemukan.');
+        abort_unless($pengajuan->status === KeberangkatanJemaah::STATUS_PENDAFTARAN, 422, 'Jadwal ini tidak dapat disetujui saat ini.');
+        abort_unless(in_array($pengajuan->keberangkatan?->status, [
+            Keberangkatan::STATUS_AKTIF,
+            Keberangkatan::STATUS_DISETUJUI,
+            Keberangkatan::STATUS_BERANGKAT,
+        ], true), 422, 'Jadwal belum tersedia untuk disetujui.');
+
+        $pengajuan->update(['status' => KeberangkatanJemaah::STATUS_SETUJU]);
+
+        return response()->json(['message' => 'Jadwal keberangkatan berhasil disetujui.']);
+    }
+
+    public function rescheduleOptions()
+    {
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $pengajuan = $this->currentPengajuan();
+        abort_unless($pengajuan, 404, 'Pengajuan keberangkatan tidak ditemukan.');
+        $this->ensureCanRequestReschedule($pengajuan);
+
+        $current = $pengajuan->keberangkatan;
+        $options = Keberangkatan::with(['paket', 'maskapaiBerangkat', 'maskapaiPulang'])
+            ->withCount(['jemaah' => fn ($q) => $q->whereIn('status', KeberangkatanJemaah::STATUSES)])
+            ->where('paket_id', $pengajuan->paket_umrah_id)
+            ->where('id', '!=', $current->id)
+            ->whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+            ->whereDate('tanggal_keberangkatan', '>', $current->tanggal_keberangkatan)
+            ->whereDate('tanggal_keberangkatan', '>', today())
+            ->orderBy('tanggal_keberangkatan')
+            ->get()
+            ->filter(fn ($item) => !$item->isFull())
+            ->map(fn ($item) => [
+                'id' => $item->id,
+                'kode' => $item->kode_keberangkatan,
+                'tanggal_keberangkatan' => $item->tanggal_keberangkatan?->toDateString(),
+                'tanggal_pulang' => $item->tanggal_pulang?->toDateString(),
+                'sisa_kuota' => $item->sisa_kuota,
+                'paket' => $item->paket?->nama_paket,
+                'maskapai' => $item->maskapaiBerangkat?->nama,
+            ])->values();
+
+        return response()->json($options);
+    }
+
+    public function requestReschedule(Request $request)
+    {
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $data = $request->validate([
+            'keberangkatan_tujuan_id' => 'required|exists:keberangkatan,id',
+            'alasan_pengajuan' => 'nullable|string|max:2000',
+        ]);
+
+        $pengajuan = $this->currentPengajuan();
+        abort_unless($pengajuan, 404, 'Pengajuan keberangkatan tidak ditemukan.');
+        $this->ensureCanRequestReschedule($pengajuan);
+
+        DB::transaction(function () use ($pengajuan, $data) {
+            $pengajuan = KeberangkatanJemaah::whereKey($pengajuan->id)->lockForUpdate()->firstOrFail();
+            abort_if($pengajuan->reschedules()->where('status', KeberangkatanJemaahReschedule::STATUS_MENUNGGU)->exists(), 422, 'Masih ada pengajuan reschedule yang menunggu.');
+
+            $asal = Keberangkatan::whereKey($pengajuan->keberangkatan_id)->lockForUpdate()->firstOrFail();
+            $tujuan = Keberangkatan::whereKey($data['keberangkatan_tujuan_id'])->withCount('jemaah')->lockForUpdate()->firstOrFail();
+
+            abort_if($tujuan->id === $asal->id, 422, 'Pilih jadwal tujuan yang berbeda.');
+            abort_unless((int) $tujuan->paket_id === (int) $pengajuan->paket_umrah_id, 422, 'Jadwal tujuan harus berasal dari paket yang sama.');
+            abort_unless($tujuan->tanggal_keberangkatan->gt($asal->tanggal_keberangkatan), 422, 'Jadwal tujuan harus lebih mundur dari jadwal saat ini.');
+            abort_unless(in_array($tujuan->status, [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI], true), 422, 'Jadwal tujuan belum dapat dipilih.');
+            abort_unless(!$tujuan->isFull(), 422, 'Kuota jadwal tujuan sudah penuh.');
+
+            $pengajuan->reschedules()->create([
+                'jemaah_id' => $pengajuan->jemaah_id,
+                'keberangkatan_asal_id' => $asal->id,
+                'keberangkatan_tujuan_id' => $tujuan->id,
+                'status' => KeberangkatanJemaahReschedule::STATUS_MENUNGGU,
+                'alasan_pengajuan' => $data['alasan_pengajuan'] ?? null,
+                'diajukan_pada' => now(),
+            ]);
+            $pengajuan->update(['status' => KeberangkatanJemaah::STATUS_RESCHEDULE]);
+        });
+
+        return response()->json(['message' => 'Pengajuan perubahan jadwal berhasil dikirim.']);
+    }
+
     private function buildInstallments(float $total, int $steps, int $dp, Carbon $departure): array
     {
         if ($steps === 1) {
@@ -223,19 +314,14 @@ class KeberangkatanJemaahController extends Controller
     private function availableSchedules(PaketUmrah $paket)
     {
         return Keberangkatan::with(['maskapaiBerangkat', 'maskapaiPulang', 'leader'])
-            ->whereIn('status', ['pendaftaran', 'persiapan'])
+            ->where('paket_id', $paket->id)
+            ->whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
             ->whereDate('tanggal_keberangkatan', '>', today())
+            ->withCount(['jemaah' => fn ($q) => $q->whereIn('status', KeberangkatanJemaah::STATUSES)])
             ->orderBy('tanggal_keberangkatan')
             ->get()
             ->filter(function ($item) use ($paket) {
-                if (!$item->tanggal_keberangkatan || !$item->tanggal_pulang) {
-                    return false;
-                }
-
-                $duration = (int) $item->tanggal_keberangkatan
-                    ->diffInDays($item->tanggal_pulang) + 1;
-
-                return $duration === (int) $paket->durasi;
+                return $item->tanggal_keberangkatan && $item->tanggal_pulang && !$item->isFull();
             })
             ->values();
     }
@@ -255,6 +341,7 @@ class KeberangkatanJemaahController extends Controller
             'keberangkatan.maskapaiBerangkat', 'keberangkatan.maskapaiPulang',
             'keberangkatan.leader', 'paketUmrah.hotelMakkah', 'paketUmrah.hotelMadinah',
             'paketUmrah.fasilitas', 'paketUmrah.program', 'pembayaran.tahapan',
+            'pendingReschedule.keberangkatanTujuan', 'reschedules.keberangkatanAsal', 'reschedules.keberangkatanTujuan',
         ])->where('jemaah_id', $jemaah->id)->latest('id')->first() : null;
     }
 
@@ -263,7 +350,16 @@ class KeberangkatanJemaahController extends Controller
         $jemaah = auth()->user()->jemaah;
 
         return $jemaah
-            ? KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->where('status', 'aktif')->exists()
+            ? KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->whereIn('status', KeberangkatanJemaah::STATUSES)->exists()
             : false;
+    }
+
+    private function ensureCanRequestReschedule(KeberangkatanJemaah $pengajuan): void
+    {
+        abort_unless(in_array($pengajuan->status, [KeberangkatanJemaah::STATUS_PENDAFTARAN, KeberangkatanJemaah::STATUS_SETUJU], true), 422, 'Status pengajuan tidak dapat mengajukan perubahan.');
+        abort_unless($pengajuan->keberangkatan, 422, 'Jadwal keberangkatan tidak ditemukan.');
+        abort_if($pengajuan->reschedules()->where('status', KeberangkatanJemaahReschedule::STATUS_MENUNGGU)->exists(), 422, 'Masih ada pengajuan reschedule yang menunggu.');
+        $days = today()->diffInDays($pengajuan->keberangkatan->tanggal_keberangkatan, false);
+        abort_unless($days >= 45, 422, 'Batas pengajuan perubahan minimal H-45 sebelum keberangkatan sudah lewat.');
     }
 }

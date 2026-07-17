@@ -34,4 +34,9 @@ class PaketUmrah extends Model
     {
         return $this->hasMany(KeberangkatanJemaah::class, 'paket_umrah_id');
     }
+
+    public function keberangkatan()
+    {
+        return $this->hasMany(Keberangkatan::class, 'paket_id');
+    }
 }

@@ -109,6 +109,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/form-data', [KeberangkatanController::class, 'getFormData']);
         Route::post('/store', [KeberangkatanController::class, 'store']);
+        Route::post('/update/{id}', [KeberangkatanController::class, 'update']);
 
         Route::get('/detail/{id}', [KeberangkatanController::class, 'detail']);
         Route::get('/detail/data/{id}', [KeberangkatanController::class, 'detail_data']);
@@ -118,12 +119,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/update-status', [KeberangkatanController::class, 'updateStatus']);
 
         Route::delete('/delete/{id}', [KeberangkatanController::class, 'delete']);
+
+        Route::get('/reschedule/{id}/review', [KeberangkatanController::class, 'reviewReschedule']);
+        Route::post('/reschedule/{id}/approve', [KeberangkatanController::class, 'approveReschedule']);
+        Route::post('/reschedule/{id}/reject', [KeberangkatanController::class, 'rejectReschedule']);
     });
 
     // Jemaah Management
     Route::prefix('jemaah')->group(function () {
 
         Route::get('/', [JemaahController::class, 'index']);
+        Route::get('/registrasi', [JemaahController::class, 'accountVerification']);
+        Route::post('/registrasi/data', [JemaahController::class, 'accountVerificationData']);
+        Route::get('/registrasi/{id}', [JemaahController::class, 'accountVerificationShow']);
+        Route::get('/data-verifikasi', [JemaahController::class, 'dataVerification']);
+        Route::get('/data-verifikasi/{id}', [JemaahController::class, 'dataVerificationShow']);
         Route::post('/data', [JemaahController::class, 'data']);
 
         Route::post('/store', [JemaahController::class, 'store']);
@@ -171,6 +181,7 @@ Route::middleware('auth')->group(function () {
     // laporan jemaah (management pimpinan)
     Route::get('/laporan/jemaah', [ReportController::class, 'index']);
     Route::post('/laporan/jemaah/data', [ReportController::class, 'data']);
+    Route::get('/laporan/jemaah/detail/{id}', [ReportController::class, 'detail']);
     Route::get('/laporan/jemaah/export/excel', [ReportController::class, 'exportExcel']);
     Route::get('/laporan/jemaah/export/pdf', [ReportController::class, 'exportPdf']);
 
@@ -181,6 +192,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/paket-umrah-jemaah/paket/{id}', [KeberangkatanJemaahController::class, 'paketDetail']);
     Route::get('/keberangkatan-jemaah', [KeberangkatanJemaahController::class, 'index']);
     Route::post('/keberangkatan-jemaah/store', [KeberangkatanJemaahController::class, 'store']);
+    Route::post('/keberangkatan-jemaah/approve-schedule', [KeberangkatanJemaahController::class, 'approveSchedule']);
+    Route::get('/keberangkatan-jemaah/reschedule-options', [KeberangkatanJemaahController::class, 'rescheduleOptions']);
+    Route::post('/keberangkatan-jemaah/reschedule', [KeberangkatanJemaahController::class, 'requestReschedule']);
     Route::get('/keberangkatan-jemaah/jadwal-paket/{paket}/{durasi}', [KeberangkatanJemaahController::class, 'jadwalByPaket']);
     Route::get('/keberangkatan-jemaah/paket/{id}', [KeberangkatanJemaahController::class, 'paketDetail']);
 });

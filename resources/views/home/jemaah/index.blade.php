@@ -20,7 +20,7 @@
 
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-striped text-center align-middle" id="dt">
+                                    <table class="table table-hover align-middle" id="dt">
                                         <thead>
                                             <tr>
                                                 <th>No</th>
@@ -267,7 +267,7 @@
                 lengthMenu: [10, 25, 50, 100],
 
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: {
                     url: '/jemaah/data',
                     type: 'POST',

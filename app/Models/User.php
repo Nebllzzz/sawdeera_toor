@@ -18,4 +18,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(DataJemaah::class, 'user_id');
     }
+
+    public function jemaahVerificationLogs()
+    {
+        return $this->hasMany(JemaahVerificationLog::class);
+    }
 }

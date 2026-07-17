@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataJemaah;
+use App\Models\JemaahVerificationLog;
 use App\Models\KeberangkatanJemaah;
 use App\Models\User;
 use App\Notifications\DocumentStatusUpdatedToJemaah;
@@ -18,7 +19,80 @@ class JemaahController extends Controller
 {
     public function index()
     {
-        return view('home.jemaah.index');
+        return redirect('/jemaah/data-verifikasi');
+    }
+
+    public function accountVerification()
+    {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $stats = [
+            'menunggu' => User::where('role', 'jemaah')->where('status', 'proses')->count(),
+            'aktif' => User::where('role', 'jemaah')->where('status', 'aktif')->count(),
+            'tidak_aktif' => User::where('role', 'jemaah')->where('status', 'tidak_aktif')->count(),
+        ];
+
+        return view('home.jemaah.account-verification', compact('stats'));
+    }
+
+    public function accountVerificationData(Request $request)
+    {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $query = User::with('jemaah')
+            ->where('role', 'jemaah')
+            ->select('users.*');
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('nama', fn ($row) => $row->name ? e($row->name) : '-')
+            ->addColumn('telepon', fn ($row) => e($row->jemaah?->no_telepon ?? '-'))
+            ->addColumn('tanggal_registrasi', fn ($row) => $row->created_at?->translatedFormat('d M Y H:i') ?? '-')
+            ->addColumn('status_badge', fn ($row) => $this->accountStatusBadge($row->status))
+            ->addColumn('action', fn ($row) => '<a href="/jemaah/registrasi/'.$row->id.'" class="btn btn-sm btn-light-primary"><i class="far fa-eye mr-1"></i> Lihat Detail</a>')
+            ->rawColumns(['nama', 'status_badge', 'action'])
+            ->make(true);
+    }
+
+    public function accountVerificationShow($id)
+    {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $user = User::with(['jemaah', 'jemaahVerificationLogs.actor'])
+            ->where('role', 'jemaah')
+            ->findOrFail($id);
+        $logs = $user->jemaahVerificationLogs()
+            ->where('type', JemaahVerificationLog::TYPE_ACCOUNT)
+            ->with('actor')
+            ->latest()
+            ->get();
+
+        return view('home.jemaah.account-detail', compact('user', 'logs'));
+    }
+
+    public function dataVerification()
+    {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $stats = [
+            'menunggu' => DataJemaah::where('status_data', 'menunggu_verifikasi')->count(),
+            'terverifikasi' => DataJemaah::where('status_data', 'terverifikasi')->count(),
+            'perlu_perbaikan' => DataJemaah::where('status_data', 'perlu_perbaikan')->count(),
+        ];
+
+        return view('home.jemaah.data-verification', compact('stats'));
+    }
+
+    public function dataVerificationShow($id)
+    {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $user = User::with(['jemaah.verificationLogs.actor'])
+            ->where('role', 'jemaah')
+            ->findOrFail($id);
+        abort_unless($user->jemaah, 404, 'Data jemaah belum tersedia.');
+        $logs = $user->jemaah->verificationLogs()
+            ->where('type', JemaahVerificationLog::TYPE_DATA)
+            ->with('actor')
+            ->latest()
+            ->get();
+
+        return view('home.jemaah.data-detail', compact('user', 'logs'));
     }
 
     public function data(Request $request)
@@ -103,9 +177,11 @@ class JemaahController extends Controller
     public function toggleStatus($id)
     {
         $user = User::with('jemaah')->where('role', 'jemaah')->findOrFail($id);
+        $before = $user->status;
         $user->status = $user->status === 'aktif' ? 'tidak_aktif' : 'aktif';
         $user->save();
         $user->jemaah?->update(['operator_id' => auth()->id()]);
+        $this->writeVerificationLog($user, JemaahVerificationLog::TYPE_ACCOUNT, $before, $user->status, $user->status === 'aktif' ? 'Akun jemaah diaktifkan.' : 'Akun jemaah dinonaktifkan.');
 
         return response()->json(['message' => "Status akun diubah menjadi {$user->status}."]);
     }
@@ -119,6 +195,7 @@ class JemaahController extends Controller
         $user = User::where('role', 'jemaah')->findOrFail($id);
         $jemaah = $user->jemaah()
             ->updateOrCreate(['user_id' => $id]);
+        $before = $jemaah->status_data;
         $jemaah->update([
             ...$data,
             'operator_id' => auth()->id(),
@@ -136,6 +213,7 @@ class JemaahController extends Controller
             'jemaah_id' => $jemaah->id,
             'url' => '/pendaftaran-saya',
         ]));
+        $this->writeVerificationLog($user, JemaahVerificationLog::TYPE_DATA, $before, $data['status_data'], $data['catatan_admin'] ?? ($verified ? 'Data jemaah diverifikasi.' : 'Status data jemaah diperbarui.'), $jemaah);
 
         return response()->json(['message' => 'Status data jemaah berhasil diperbarui.']);
     }
@@ -175,9 +253,14 @@ class JemaahController extends Controller
                 $user->update(['password' => Hash::make($data['password'])]);
             }
             if ($user->role === 'jemaah') {
+                $payload = [];
+                if ($request->has('no_telepon')) {
+                    $payload['no_telepon'] = $data['no_telepon'] ?: ($user->jemaah?->no_telepon ?? '-');
+                }
+
                 $jemaah = $user->jemaah()->updateOrCreate(
                     ['user_id' => $user->id],
-                    ['no_telepon' => $data['no_telepon'] ?? null]
+                    $payload ?: ['no_telepon' => $user->jemaah?->no_telepon ?? '-']
                 );
                 if ($request->hasFile('foto_profil')) {
                     if ($jemaah->foto_profil) {
@@ -216,10 +299,12 @@ class JemaahController extends Controller
             'golongan_darah' => ['required', Rule::in(['A', 'B', 'AB', 'O'])],
             'riwayat_penyakit' => 'nullable|string|max:2000',
             'alergi' => 'nullable|string|max:2000',
+            'scan_paspor' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'foto_profil' => 'nullable|image|mimes:jpg,jpeg,png|max:3072',
         ]);
 
         $jemaah = DB::transaction(function () use ($request, $user) {
-            return $user->jemaah()->updateOrCreate(
+            $jemaah = $user->jemaah()->updateOrCreate(
                 ['user_id' => $user->id],
                 $this->jemaahPayload($request) + [
                     'status_data' => 'menunggu_verifikasi',
@@ -227,6 +312,10 @@ class JemaahController extends Controller
                     'diverifikasi_pada' => null,
                 ]
             );
+
+            $this->storeUploads($request, $jemaah);
+
+            return $jemaah->refresh();
         });
 
         foreach (User::whereIn('role', ['admin', 'operator'])->get() as $admin) {
@@ -245,7 +334,7 @@ class JemaahController extends Controller
     {
         return $user->jemaah
             && KeberangkatanJemaah::where('jemaah_id', $user->jemaah->id)
-                ->where('status', 'aktif')->exists();
+                ->whereIn('status', KeberangkatanJemaah::STATUSES)->exists();
     }
 
     private function validateJemaah(Request $request, ?User $user = null): array
@@ -281,9 +370,15 @@ class JemaahController extends Controller
     {
         $paths = [];
         if ($request->hasFile('scan_paspor')) {
+            if ($jemaah->scan_paspor) {
+                Storage::disk('public')->delete($jemaah->scan_paspor);
+            }
             $paths['scan_paspor'] = $request->file('scan_paspor')->store('jemaah/paspor', 'public');
         }
         if ($request->hasFile('foto_profil')) {
+            if ($jemaah->foto_profil) {
+                Storage::disk('public')->delete($jemaah->foto_profil);
+            }
             $paths['foto_profil'] = $request->file('foto_profil')->store('jemaah/profil', 'public');
         }
         if ($paths) {
@@ -312,5 +407,18 @@ class JemaahController extends Controller
         ];
         [$color, $label] = $map[$status] ?? ['secondary', 'Belum Lengkap'];
         return "<span class=\"badge badge-{$color}\">{$label}</span>";
+    }
+
+    private function writeVerificationLog(User $user, string $type, ?string $before, ?string $after, ?string $note = null, ?DataJemaah $jemaah = null): void
+    {
+        JemaahVerificationLog::create([
+            'user_id' => $user->id,
+            'jemaah_id' => $jemaah?->id ?? $user->jemaah?->id,
+            'actor_id' => auth()->id(),
+            'type' => $type,
+            'status_before' => $before,
+            'status_after' => $after,
+            'note' => $note,
+        ]);
     }
 }

@@ -33,10 +33,10 @@ class DokumenJemaahController extends Controller
             ? DokumenJemaah::where('jemaah_id', $jemaah->id)->get()->keyBy('jenis_dokumen')
             : collect();
         $hasDeparture = $jemaah && KeberangkatanJemaah::where('jemaah_id', $jemaah->id)
-            ->where('status', 'aktif')->exists();
+            ->whereIn('status', KeberangkatanJemaah::STATUSES)->exists();
         $hasRegistration = $this->hasCompletedRegistration($jemaah);
         $documentTypes = $this->documentTypesFor($jemaah);
-        $visibleDocs = $docs->only(array_keys($documentTypes));
+        $visibleDocs = $this->visibleDocuments($docs, $documentTypes);
 
         return view('home.dokumen.index', [
             'data' => $visibleDocs,
@@ -60,7 +60,7 @@ class DokumenJemaahController extends Controller
         $jemaah = auth()->user()->jemaah;
         abort_unless($jemaah, 422, 'Lengkapi data pendaftaran terlebih dahulu.');
         abort_unless(
-            KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->where('status', 'aktif')->exists(),
+            KeberangkatanJemaah::where('jemaah_id', $jemaah->id)->whereIn('status', KeberangkatanJemaah::STATUSES)->exists(),
             422,
             'Pilih paket dan keberangkatan terlebih dahulu.'
         );
@@ -103,7 +103,9 @@ class DokumenJemaahController extends Controller
             ]));
         }
 
-        return back()->with('success', "{$label} berhasil diunggah dan menunggu verifikasi.");
+        return back()
+            ->with('success', "{$label} berhasil diunggah dan menunggu verifikasi.")
+            ->with('berhasil', "{$label} berhasil diunggah dan menunggu verifikasi.");
     }
 
     public function index()
@@ -123,8 +125,18 @@ class DokumenJemaahController extends Controller
             ->addIndexColumn()
             ->addColumn('nama', fn ($r) => e($r->user?->name ?? '-'))
             ->addColumn('email', fn ($r) => e($r->user?->email ?? '-'))
+            ->addColumn('kelengkapan', function ($r) {
+                $required = array_keys($this->documentTypesFor($r));
+                $uploaded = $r->dokumen
+                    ->whereIn('jenis_dokumen', $required)
+                    ->whereIn('status', ['diproses', 'diverifikasi', 'ditolak'])
+                    ->count();
+
+                return $uploaded.'/'.count($required).' dokumen';
+            })
+            ->addColumn('status_dokumen', fn ($r) => $this->documentStatusBadge($r))
             ->addColumn('action', fn ($r) => '<a href="/admin/dokumen/'.$r->id.'" class="btn btn-sm btn-primary"><i class="fas fa-eye mr-1"></i> Detail</a>')
-            ->rawColumns(['action'])
+            ->rawColumns(['status_dokumen', 'action'])
             ->make(true);
     }
 
@@ -137,7 +149,7 @@ class DokumenJemaahController extends Controller
         }
         $docs = $jemaah->dokumen->keyBy('jenis_dokumen');
         $documentTypes = $this->documentTypesFor($jemaah);
-        $visibleDocs = $docs->only(array_keys($documentTypes));
+        $visibleDocs = $this->visibleDocuments($docs, $documentTypes);
 
         return view('home.dokumen.detail', [
             'jemaah' => $jemaah,
@@ -218,5 +230,33 @@ class DokumenJemaahController extends Controller
         }
 
         return $documents;
+    }
+
+    private function visibleDocuments($docs, array $documentTypes)
+    {
+        $allowedTypes = array_keys($documentTypes);
+
+        return collect($docs)
+            ->filter(fn ($doc, $type) => in_array($type, $allowedTypes, true));
+    }
+
+    private function documentStatusBadge(DataJemaah $jemaah): string
+    {
+        $required = array_keys($this->documentTypesFor($jemaah));
+        $docs = $jemaah->dokumen->whereIn('jenis_dokumen', $required);
+
+        if ($docs->where('status', 'ditolak')->isNotEmpty()) {
+            return '<span class="badge badge-danger">Perlu Revisi</span>';
+        }
+
+        if ($docs->where('status', 'diverifikasi')->count() === count($required)) {
+            return '<span class="badge badge-success">Terverifikasi</span>';
+        }
+
+        if ($docs->whereIn('status', ['diproses', 'diverifikasi'])->isNotEmpty()) {
+            return '<span class="badge badge-warning">Sudah Upload</span>';
+        }
+
+        return '<span class="badge badge-secondary">Belum Upload</span>';
     }
 }

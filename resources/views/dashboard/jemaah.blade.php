@@ -3,760 +3,781 @@
 @section('title', 'Dashboard Jemaah')
 
 @section('content')
+@php
+    $package = $kJ?->paketUmrah;
+    $schedule = $kJ?->keberangkatan;
+    $requiredTotal = count($docStatus);
+    $paymentStatus = $latestPayment?->status ?? 'belum_upload';
 
-    <style>
-        :root {
-            --primary-brown: #6B3E20;
-            --secondary-brown: #8B5A2B;
-            --soft-cream: #FFF8EE;
-            --card-bg: #FFFFFF;
-            --gold: #D6A25A;
-            --text-dark: #2F2F2F;
+    $paymentLabel = [
+        'belum_upload' => 'Belum Lunas',
+        'diproses' => 'Sedang Diverifikasi',
+        'diverifikasi' => 'Lunas',
+        'ditolak' => 'Ditolak',
+    ][$paymentStatus] ?? ucfirst(str_replace('_', ' ', $paymentStatus));
+
+    $docLabel = $rejectedCount > 0
+        ? 'Perlu Revisi'
+        : ($completeCount === $requiredTotal ? 'Lengkap' : ($uploadedCount > 0 ? 'Sedang Diverifikasi' : 'Belum Lengkap'));
+
+    $docStepLabel = $rejectedCount > 0
+        ? 'Perlu Revisi'
+        : ($completeCount === $requiredTotal ? 'Selesai' : ($uploadedCount > 0 ? 'Sedang Diverifikasi' : 'Belum Selesai'));
+
+    $paymentStepLabel = match ($paymentStatus) {
+        'diverifikasi' => 'Selesai',
+        'diproses' => 'Sedang Diverifikasi',
+        'ditolak' => 'Ditolak',
+        default => 'Belum Selesai',
+    };
+
+    $steps = [
+        [
+            'Registrasi Akun',
+            'Selesai',
+            true,
+            'fas fa-user-check',
+        ],
+        [
+            'Pilih Paket Umrah',
+            $package ? 'Selesai' : 'Belum Selesai',
+            (bool) $package,
+            'fas fa-kaaba',
+        ],
+        [
+            'Lengkapi Data Diri',
+            in_array($jemaah->status_data, ['menunggu_verifikasi', 'terverifikasi'], true)
+                ? 'Selesai'
+                : 'Belum Selesai',
+            in_array($jemaah->status_data, ['menunggu_verifikasi', 'terverifikasi'], true),
+            'fas fa-id-card',
+        ],
+        [
+            'Upload Dokumen Pendukung',
+            $docStepLabel,
+            $uploadedCount > 0,
+            'fas fa-file-upload',
+        ],
+        [
+            'Upload Bukti Pembayaran',
+            $paymentStepLabel,
+            (bool) $latestPayment,
+            'fas fa-wallet',
+        ],
+        [
+            'Verifikasi Approval Admin',
+            $latestPayment?->status === 'diverifikasi' ? 'Selesai' : 'Belum Selesai',
+            $latestPayment?->status === 'diverifikasi',
+            'fas fa-shield-alt',
+        ],
+    ];
+@endphp
+
+<style>
+    .jdash {
+        background: #fbfaf8;
+        min-height: calc(100vh - 96px);
+        padding: 22px;
+    }
+
+    .jcard {
+        background: #fff;
+        border: 1px solid #eee8dd;
+        border-radius: 10px;
+        box-shadow: 0 6px 22px rgba(44, 31, 17, .05);
+    }
+
+    .jhead {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .jhead h2 {
+        font-size: 22px;
+        font-weight: 800;
+        margin: 2px 0;
+        color: #1f2937;
+    }
+
+    .jhead small {
+        color: #6b7280;
+    }
+
+    .avatar-mini {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #7a4f13;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kolom utama dashboard
+    |--------------------------------------------------------------------------
+    */
+
+    .dashboard-main-column {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        height: 100%;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Progress
+    |--------------------------------------------------------------------------
+    */
+
+    .progress-panel {
+        padding: 20px;
+    }
+
+    .progress-layout {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr);
+        gap: 22px;
+        align-items: center;
+    }
+
+    .ring {
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        background:
+            conic-gradient(
+                #a86d08 calc(var(--p) * 1%),
+                #f1e3c9 0
+            );
+        display: grid;
+        place-items: center;
+    }
+
+    .ring-inner {
+        width: 94px;
+        height: 94px;
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        text-align: center;
+    }
+
+    .ring b {
+        font-size: 30px;
+    }
+
+    .ring small {
+        display: block;
+        color: #6b7280;
+    }
+
+    .steps {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        align-items: start;
+    }
+
+    .step {
+        text-align: center;
+        position: relative;
+        min-width: 0;
+    }
+
+    .step::before {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: -50%;
+        width: 100%;
+        height: 2px;
+        background: #dcc59c;
+    }
+
+    .step:first-child::before {
+        display: none;
+    }
+
+    .step.done::before {
+        background: #9c6508;
+    }
+
+    .step-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f1f1;
+        color: #a1a1aa;
+        border: 2px solid #e5e7eb;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step.done .step-icon {
+        background: #9c6508;
+        color: #fff;
+        border-color: #9c6508;
+    }
+
+    .step b {
+        display: block;
+        font-size: 11px;
+        margin-top: 8px;
+        color: #1f2937;
+        line-height: 1.2;
+    }
+
+    .step small {
+        display: block;
+        font-size: 10px;
+        color: #9ca3af;
+        line-height: 1.25;
+        margin-top: 3px;
+    }
+
+    .step.done small {
+        color: #2fa24c;
+    }
+
+    .step:not(.done):nth-child(4) small,
+    .step:not(.done):nth-child(5) small {
+        color: #c47a10;
+    }
+
+    .notice {
+        margin-top: 18px;
+        background: #fff6e6;
+        border-radius: 7px;
+        padding: 12px;
+        text-align: center;
+        color: #7a5a1b;
+        font-size: 13px;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Informasi paket
+    |--------------------------------------------------------------------------
+    */
+
+    .info-card {
+        padding: 16px;
+        height: 100%;
+    }
+
+    .info-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 14px;
+    }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 8px;
+        margin-bottom: 9px;
+    }
+
+    .info-row i {
+        color: #b17613;
+    }
+
+    .info-row small {
+        display: block;
+        color: #6b7280;
+    }
+
+    .info-row b {
+        display: block;
+        font-size: 12px;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Card ringkasan
+    |--------------------------------------------------------------------------
+    */
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin: 0;
+    }
+
+    .stat-card {
+        padding: 17px;
+        min-height: 136px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-card .icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    .stat-card h5 {
+        font-size: 15px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .stat-card p {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 12px;
+    }
+
+    .outline-btn {
+        display: block;
+        text-align: center;
+        border: 1px solid #b88735;
+        border-radius: 6px;
+        padding: 8px;
+        color: #8a5b16;
+        font-weight: 700;
+        font-size: 12px;
+        text-decoration: none !important;
+        transition: .18s ease;
+    }
+
+    .stat-card .outline-btn {
+        margin-top: auto;
+    }
+
+    .outline-btn:hover {
+        background: #b17613;
+        border-color: #b17613;
+        color: #fff;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Menu cepat
+    |--------------------------------------------------------------------------
+    */
+
+    .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .quick-card {
+        border-radius: 9px;
+        padding: 15px 10px;
+        text-align: center;
+        color: #1f2937;
+        font-weight: 700;
+        font-size: 11px;
+        text-decoration: none !important;
+        min-height: 92px;
+    }
+
+    .quick-card i {
+        display: block;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifikasi
+    |--------------------------------------------------------------------------
+    */
+
+    .notif-item {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #f8fbff;
+    }
+
+    .notif-item i {
+        margin-top: 3px;
+    }
+
+    .notif-item b {
+        font-size: 12px;
+    }
+
+    .notif-item small {
+        display: block;
+        color: #6b7280;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Responsive
+    |--------------------------------------------------------------------------
+    */
+
+    @media (max-width: 1199.98px) {
+        .progress-layout {
+            grid-template-columns: 1fr;
         }
 
-        .content-wrapper {
-            padding: 0;
+        .steps {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            row-gap: 20px;
         }
 
-        .dashboard-card {
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-            border: none;
-            overflow: hidden;
+        .step::before {
+            display: none;
         }
 
-        .hero-section {
-            background: linear-gradient(135deg, #FFF6E8, #FFFFFF);
-            border-radius: 22px;
-            padding: 30px;
-            position: relative;
+        .stat-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
-        .welcome-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 4px;
+        .quick-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .stat-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .jdash {
+            padding: 14px;
         }
 
-        .welcome-subtitle {
-            color: #777;
-            font-size: 15px;
+        .jhead {
+            align-items: flex-start;
         }
 
-        .payment-highlight {
-            background: linear-gradient(135deg, var(--primary-brown), #4D2B12);
-            color: white;
-            border-radius: 18px;
-            padding: 20px;
-            min-width: 260px;
+        .steps {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .payment-highlight .label {
-            font-size: 13px;
-            opacity: .85;
+        .quick-grid {
+            grid-template-columns: 1fr;
         }
+    }
+</style>
 
-        .payment-highlight .status {
-            font-size: 24px;
-            font-weight: 700;
-            text-transform: capitalize;
-        }
+<div class="content-wrapper jdash">
 
-        .summary-card {
-            padding: 20px;
-            height: 100%;
-        }
+    {{-- ============================================================
+        PROGRESS, RINGKASAN, DAN INFORMASI PAKET
+    ============================================================= --}}
+    <div class="row align-items-stretch">
 
-        .summary-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
+        {{-- Kolom kiri --}}
+        <div class="col-xl-9 mb-3">
+            <div class="dashboard-main-column">
 
-        .summary-title {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 4px;
-        }
+                {{-- Progress pendaftaran --}}
+                <div class="jcard progress-panel">
+                    <h5 class="font-weight-bold mb-4">
+                        Progress Pendaftaran Umrah
+                    </h5>
 
-        .summary-value {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-dark);
-            line-height: 1.4;
-        }
+                    <div class="progress-layout">
 
-        .summary-desc {
-            font-size: 13px;
-            color: #888;
-        }
-
-        .progress-custom {
-            width: 100%;
-            height: 22px;
-            background: #F1E3CF;
-            border-radius: 30px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #D6A25A, #6B3E20);
-            border-radius: 30px;
-            min-width: 45px;
-            font-size: 12px;
-        }
-
-        .quick-action {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            border-radius: 16px;
-            background: #fff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            transition: .2s ease;
-            text-decoration: none !important;
-            color: inherit;
-            height: 100%;
-        }
-
-        .quick-action:hover {
-            transform: translateY(-2px);
-            color: inherit;
-        }
-
-        .quick-action-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-        }
-
-        .timeline {
-            position: relative;
-            padding-left: 20px;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 5px;
-            width: 2px;
-            height: 100%;
-            background: #E5D6C3;
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -19px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--primary-brown);
-        }
-
-        .timeline-title {
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .timeline-subtitle {
-            font-size: 13px;
-            color: #888;
-        }
-
-        @media(max-width:768px) {
-
-            .hero-section {
-                padding: 22px;
-            }
-
-            .payment-highlight {
-                margin-top: 20px;
-                width: 100%;
-                min-width: 100%;
-            }
-
-            .welcome-title {
-                font-size: 1.6rem;
-            }
-        }
-    </style>
-
-    <div class="content-wrapper">
-
-        {{-- HERO --}}
-        <div class="dashboard-card hero-section mb-4">
-
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start">
-
-                <div>
-
-                    <h1 class="welcome-title">
-                        Selamat Datang, {{ $user->name }}
-                    </h1>
-
-                    <div class="welcome-subtitle">
-                        {{ now()->translatedFormat('d F Y') }}
-                        •
-                        {{ optional(optional($kJ)->paketUmrah)->nama_paket ?? 'Belum memilih paket' }}
-                    </div>
-
-                    @if (!is_null($countdown))
-
-                        @if ($countdown > 0)
-
-                            <div class="mt-3 font-weight-bold">
-                                ✈️ Keberangkatan dalam {{ $countdown }} hari lagi
-                            </div>
-
-                        @elseif ($countdown == 0)
-
-                            <div class="mt-3 font-weight-bold text-success">
-                                ✈️ Hari ini adalah jadwal keberangkatan Anda
-                            </div>
-
-                        @else
-
-                            <div class="mt-3 font-weight-bold text-muted">
-                                ✈️ Jadwal keberangkatan telah berlalu
-                            </div>
-
-                        @endif
-
-                    @endif
-
-                </div>
-
-                <div class="payment-highlight mt-4 mt-lg-0">
-
-                    <div class="label">
-                        Status Pembayaran
-                    </div>
-
-                    <div class="status">
-                        {{ $latestPayment->status ?? 'Belum Upload' }}
-                    </div>
-
-                    <div class="small mt-2">
-                        {{ isset($latestPayment) ? ucwords(str_replace('_', ' ', $latestPayment->jenis_pembayaran)) : '-' }}
-                        •
-                        {{ $latestPayment?->jumlah_tahap ?? '-' }} tahap
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        {{-- SUMMARY --}}
-        <div class="row">
-
-            {{-- PROFILE --}}
-            <div class="col-lg-3 col-md-6 mb-4">
-
-                <div class="dashboard-card summary-card">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
+                        {{-- Persentase --}}
                         <div>
-                            <div class="summary-title">
-                                Profile
+                            <div
+                                class="ring mx-auto"
+                                style="--p: {{ $percent }}"
+                            >
+                                <div class="ring-inner">
+                                    <div>
+                                        <b>{{ $percent }}%</b>
+                                        <small>Selesai</small>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="summary-value">
-                                Data Diri Lengkap
-                            </div>
-
-                            <div class="summary-desc">
-                                Registrasi berhasil dilakukan
-                            </div>
+                            <small class="d-block text-center mt-3">
+                                {{ collect($steps)->filter(fn ($step) => $step[2])->count() }}
+                                dari 6 tahap selesai
+                            </small>
                         </div>
 
-                        <div class="summary-icon" style="background:linear-gradient(135deg,#4CAF50,#2E7D32);">
-                            <i class="fas fa-user-check"></i>
-                        </div>
+                        {{-- Tahapan --}}
+                        <div>
+                            <div class="steps">
+                                @foreach($steps as $step)
+                                    <div class="step {{ $step[2] ? 'done' : '' }}">
+                                        <span class="step-icon">
+                                            <i class="{{ $step[2] ? 'fas fa-check' : $step[3] }}"></i>
+                                        </span>
 
+                                        <b>{{ $step[0] }}</b>
+                                        <small>{{ $step[1] }}</small>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="notice">
+                                <i class="far fa-clock mx-2"></i>
+
+                                {{ $missingCount > 0
+                                    ? 'Silakan lengkapi dokumen pendukung. Dokumen yang sudah diunggah sedang diverifikasi admin.'
+                                    : 'Dokumen pendukung Anda sudah lengkap.'
+                                }}
+                            </div>
+                        </div>
                     </div>
-
                 </div>
 
-            </div>
+                {{-- Tiga card langsung berada di bawah progress --}}
+                <div class="stat-grid">
 
-            {{-- DOKUMEN --}}
-            <div class="col-lg-3 col-md-6 mb-4">
+                    {{-- Paket umrah --}}
+                    <div class="jcard stat-card">
+                        <span
+                            class="icon"
+                            style="background:#f0e9ff;color:#6f42c1"
+                        >
+                            <i class="fas fa-globe"></i>
+                        </span>
 
-                <div class="dashboard-card summary-card">
+                        <h5>
+                            {{ $package->nama_paket ?? 'Belum Ada Paket' }}
+                        </h5>
 
-                    @php
-                        $pending = $missingCount;
-                        $rejected = $rejectedCount;
-                    @endphp
+                        <p>
+                            Keberangkatan
+                            {{ $schedule?->tanggal_keberangkatan?->translatedFormat('d F Y') ?? '-' }}
+                        </p>
 
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-
-                            <div class="summary-title">
-                                Status Dokumen
-                            </div>
-
-                            <div class="summary-value">
-
-                                @if ($rejected > 0)
-                                    Dokumen perlu revisi
-                                @elseif($pending > 0)
-                                    {{ $pending }} dokumen perlu dilengkapi
-                                @else
-                                    Semua dokumen lengkap
-                                @endif
-
-                            </div>
-
-                            <div class="summary-desc">
-                                KTP • Paspor • Visa • Vaksin • Kartu Keluarga @if(($jemaah->status_pernikahan ?? null) === 'menikah') • Buku Nikah @endif • Foto 4×6
-                            </div>
-
-                        </div>
-
-                        <div class="summary-icon" style="background:linear-gradient(135deg,#F4A62A,#D97B00);">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-
+                        <a
+                            href="/paket-umrah-jemaah"
+                            class="outline-btn"
+                        >
+                            Lihat Detail Paket
+                        </a>
                     </div>
 
-                </div>
-
-            </div>
-
-            {{-- PEMBAYARAN --}}
-            <div class="col-lg-3 col-md-6 mb-4">
-
-                <div class="dashboard-card summary-card">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-
-                            <div class="summary-title">
-                                Pembayaran
-                            </div>
-
-                            <div class="summary-value">
-                                {{ ucfirst($latestPayment->status ?? 'Belum Upload') }}
-                            </div>
-
-                            <div class="summary-desc">
-                                Rp {{ number_format($latestPayment->jumlah ?? 0, 0, ',', '.') }}
-                            </div>
-
-                        </div>
-
-                        <div class="summary-icon" style="background:linear-gradient(135deg,#4B7BEC,#1E4DB7);">
+                    {{-- Pembayaran --}}
+                    <div class="jcard stat-card">
+                        <span
+                            class="icon"
+                            style="background:#e7f8ee;color:#159447"
+                        >
                             <i class="fas fa-wallet"></i>
-                        </div>
+                        </span>
 
+                        <h5>{{ $paymentLabel }}</h5>
+
+                        <p>
+                            Total Pembayaran Rp
+                            {{ number_format(
+                                $latestPayment->total_tagihan ?? 0,
+                                0,
+                                ',',
+                                '.'
+                            ) }}
+                        </p>
+
+                        <a
+                            href="/pemabayan"
+                            class="outline-btn"
+                        >
+                            Lihat Detail Pembayaran
+                        </a>
+                    </div>
+
+                    {{-- Dokumen --}}
+                    <div class="jcard stat-card">
+                        <span
+                            class="icon"
+                            style="background:#e9f3ff;color:#226bd2"
+                        >
+                            <i class="fas fa-folder-open"></i>
+                        </span>
+
+                        <h5>{{ $docLabel }}</h5>
+
+                        <p>
+                            {{ $uploadedCount }} dari
+                            {{ $requiredTotal }} dokumen terupload
+                        </p>
+
+                        <a
+                            href="/dokumen"
+                            class="outline-btn"
+                        >
+                            Lihat Dokumen
+                        </a>
                     </div>
 
                 </div>
-
             </div>
-
-            {{-- KEBERANGKATAN --}}
-            <div class="col-lg-3 col-md-6 mb-4">
-
-                <div class="dashboard-card summary-card">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-
-                            <div class="summary-title">
-                                Jadwal Keberangkatan
-                            </div>
-
-                            <div class="summary-value">
-                                {{ $kJ?->keberangkatan?->tanggal_keberangkatan?->format('d M Y') ?? '-' }}
-                            </div>
-
-                            <div class="summary-desc">
-                                {{ $kJ?->paketUmrah?->nama_paket ?? '-' }}
-                            </div>
-
-                        </div>
-
-                        <div class="summary-icon" style="background:linear-gradient(135deg,#B65B2A,#7A3618);">
-                            <i class="fas fa-plane-departure"></i>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
         </div>
 
-        {{-- PROGRESS --}}
-        <div class="dashboard-card p-4 mb-4">
+        {{-- Kolom kanan --}}
+        <div class="col-xl-3 mb-3">
+            <div class="jcard info-card h-100">
+                <h6 class="font-weight-bold">
+                    Informasi Paket Anda
+                </h6>
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
+                <img
+                    src="{{ asset('img/thumb1.jpg') }}"
+                    alt="Paket Umrah"
+                >
 
-                <div>
-                    <h5 class="mb-1">
-                        Progress Kelengkapan Data
-                    </h5>
+                <div class="info-row">
+                    <i class="far fa-clipboard"></i>
 
-                    <small class="text-muted">
-                        Data Diri, Dokumen yang Teferivikasi, dan Pembayaran yang Teferivikasi
-                    </small>
-                </div>
-
-                <div class="font-weight-bold">
-                    {{ $percent }}%
-                </div>
-
-            </div>
-
-            <div class="progress-custom position-relative">
-
-                <div class="progress-bar d-flex align-items-center justify-content-center text-white font-weight-bold"
-                    style="width: {{ $percent }}%; transition: .5s ease;">
-
-                    {{ $percent }}%
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            {{-- LEFT --}}
-            <div class="col-lg-8">
-
-                {{-- QUICK ACTION --}}
-                <div class="dashboard-card p-4 mb-4">
-
-                    <h5 class="mb-4">
-                        Akses Cepat
-                    </h5>
-
-                    <div class="row">
-
-                        <div class="col-md-6 mb-3">
-                            <a href="/dokumen" class="quick-action">
-
-                                <div class="quick-action-icon" style="background:#F4A62A;">
-                                    <i class="fas fa-upload"></i>
-                                </div>
-
-                                <div>
-                                    <div class="font-weight-bold">
-                                        Upload Dokumen
-                                    </div>
-
-                                    <small class="text-muted">
-                                        Lengkapi dokumen persyaratan
-                                    </small>
-                                </div>
-
-                            </a>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <a href="/pemabayan" class="quick-action">
-
-                                <div class="quick-action-icon" style="background:#4CAF50;">
-                                    <i class="fas fa-money-check-alt"></i>
-                                </div>
-
-                                <div>
-                                    <div class="font-weight-bold">
-                                        Upload Pembayaran
-                                    </div>
-
-                                    <small class="text-muted">
-                                        Upload bukti pembayaran
-                                    </small>
-                                </div>
-
-                            </a>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <a href="/paket-umrah-jemaah" class="quick-action">
-
-                                <div class="quick-action-icon" style="background:#4B7BEC;">
-                                    <i class="fas fa-box-open"></i>
-                                </div>
-
-                                <div>
-                                    <div class="font-weight-bold">
-                                        Paket Umrah
-                                    </div>
-
-                                    <small class="text-muted">
-                                        Lihat detail paket perjalanan
-                                    </small>
-                                </div>
-
-                            </a>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <a href="/keberangkatan-jemaah" class="quick-action">
-
-                                <div class="quick-action-icon" style="background:#B65B2A;">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </div>
-
-                                <div>
-                                    <div class="font-weight-bold">
-                                        Jadwal Saya
-                                    </div>
-
-                                    <small class="text-muted">
-                                        Informasi jadwal keberangkatan
-                                    </small>
-                                </div>
-
-                            </a>
-                        </div>
-
+                    <div>
+                        <small>Nama Paket</small>
+                        <b>
+                            {{ $package->nama_paket ?? 'Belum memilih paket' }}
+                        </b>
                     </div>
-
                 </div>
 
-                {{-- RECENT ACTIVITY --}}
-                <div class="dashboard-card p-4 mb-4">
+                <div class="info-row">
+                    <i class="fas fa-plane"></i>
 
-                    <h5 class="mb-4">
-                        Aktivitas Terbaru
-                    </h5>
-
-                    <div class="timeline">
-
-                        @if ($recentDocs->count() > 0 || $recentPayments->count() > 0)
-
-                            {{-- DOKUMEN --}}
-                            @foreach ($recentDocs as $d)
-
-                                <div class="timeline-item">
-
-                                    <div class="timeline-title">
-                                        Upload {{ strtoupper($d->jenis_dokumen) }}
-                                    </div>
-
-                                    <div class="timeline-subtitle">
-
-                                        Status:
-                                        {{ ucfirst($d->status) }}
-
-                                        •
-
-                                        {{ $d->updated_at->diffForHumans() }}
-
-                                    </div>
-
-                                </div>
-
-                            @endforeach
-
-
-                            {{-- PEMBAYARAN --}}
-                            @foreach ($recentPayments as $p)
-
-                                <div class="timeline-item">
-
-                                    <div class="timeline-title">
-
-                                        Pembayaran
-                                        {{ ucwords(str_replace('_', ' ', $p->jenis_pembayaran)) }}
-
-                                        •
-
-                                        Rp {{ number_format($p->total_tagihan ?? $p->jumlah, 0, ',', '.') }}
-
-                                    </div>
-
-                                    <div class="timeline-subtitle">
-
-                                        Status:
-                                        {{ ucfirst($p->status) }}
-
-                                        •
-
-                                        {{ $p->updated_at->diffForHumans() }}
-
-                                    </div>
-
-                                </div>
-
-                            @endforeach
-
-                        @else
-
-                            <div class="text-center py-4">
-
-                                <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
-
-                                <div class="text-muted">
-                                    Belum ada aktivitas terbaru.
-                                </div>
-
-                            </div>
-
-                        @endif
-
+                    <div>
+                        <small>Maskapai</small>
+                        <b>
+                            {{ $schedule?->maskapaiBerangkat?->nama ?? '-' }}
+                        </b>
                     </div>
-
                 </div>
 
+                <div class="info-row">
+                    <i class="far fa-calendar"></i>
+
+                    <div>
+                        <small>Keberangkatan</small>
+                        <b>
+                            {{ $schedule?->tanggal_keberangkatan?->translatedFormat('d F Y') ?? 'Belum ditentukan' }}
+                        </b>
+                    </div>
+                </div>
+
+                <a
+                    class="outline-btn mt-12"
+                    href="/paket-umrah-jemaah"
+                >
+                    Lihat Detail
+                </a>
             </div>
-
-            {{-- RIGHT --}}
-            <div class="col-lg-4">
-
-                {{-- CHART --}}
-                <div class="dashboard-card p-4 mb-4">
-
-                    <h5 class="mb-4">
-                        Statistik Dokumen Yang Sudah Teferivikasi
-                    </h5>
-
-                    <canvas id="docChart" height="220"></canvas>
-
-                </div>
-
-                {{-- ALERT --}}
-                <div class="dashboard-card p-4">
-
-                    <h5 class="mb-4">
-                        Notifikasi Pintar
-                    </h5>
-
-                    {{-- DOKUMEN --}}
-                    @if ($missingCount > 0)
-                        <div class="alert alert-warning">
-                            Anda masih memiliki
-                            <b>{{ $missingCount }} dokumen</b>
-                            yang belum dilengkapi.
-                        </div>
-                    @elseif($rejectedCount > 0)
-                        <div class="alert alert-danger">
-                            Ada dokumen yang ditolak dan perlu diperbaiki kembali.
-                        </div>
-                    @else
-                        <div class="alert alert-success">
-                            Semua dokumen berhasil dilengkapi oleh Anda.
-                        </div>
-                    @endif
-
-
-                    {{-- PEMBAYARAN --}}
-                    @if ($latestPayment == null)
-                        <div class="alert alert-info">
-                            Anda belum mengupload pembayaran.
-                        </div>
-                    @elseif($latestPayment->status === 'ditolak')
-                        <div class="alert alert-danger">
-                            Pembayaran ditolak:
-                            {{ $latestPayment->keterangan_penolakan }}
-                        </div>
-                    @elseif($latestPayment->status === 'diproses')
-                        <div class="alert alert-warning">
-                            Pembayaran sedang menunggu proses verifikasi admin.
-                        </div>
-                    @elseif($latestPayment->status === 'diverifikasi')
-                        <div class="alert alert-success">
-                            Pembayaran berhasil diverifikasi.
-                        </div>
-                    @endif
-
-                </div>
-
-            </div>
-
         </div>
-
     </div>
 
-    @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {{-- ============================================================
+        MENU CEPAT DAN NOTIFIKASI
+    ============================================================= --}}
+    <div class="row">
 
-        <script>
-            const ctx = document.getElementById('docChart');
+        {{-- Menu cepat --}}
+        <div class="col-xl-8 mb-3">
+            <div class="jcard p-3">
+                <h6 class="font-weight-bold mb-3">
+                    Menu Cepat
+                </h6>
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['KTP', 'Paspor', 'Visa', 'Vaksin', 'Kartu Keluarga', @if(($jemaah->status_pernikahan ?? null) === 'menikah') 'Buku Nikah', @endif 'Foto 4×6'],
-                    datasets: [{
-                        data: [
-                            {{ ($docStatus['ktp'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            {{ ($docStatus['paspor'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            {{ ($docStatus['visa'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            {{ ($docStatus['vaksin'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            {{ ($docStatus['kartu_keluarga'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            @if(($jemaah->status_pernikahan ?? null) === 'menikah')
-                            {{ ($docStatus['buku_nikah'] ?? '') === 'diverifikasi' ? 1 : 0 }},
-                            @endif
-                            {{ ($docStatus['foto_4x6'] ?? '') === 'diverifikasi' ? 1 : 0 }}
-                        ],
-                        backgroundColor: [
-                            '#E8B56A',
-                            '#D89B42',
-                            '#C8743C',
-                            '#9C5227',
-                            '#6C7A40',
-                            '#4B7BEC',
-                            '#8B5A2B'
-                        ],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        </script>
-    @endpush
+                <div class="quick-grid">
+                    <a class="quick-card" style="background:#f4edff;color:#7047bf" href="/pendaftaran-saya">
+                        <i class="far fa-user" style="color:#8b5cf6"></i>
+                        Lengkapi Data Diri
+                    </a>
 
+                    <a class="quick-card" style="background:#e9f4ff;color:#226bd2" href="/dokumen">
+                        <i class="far fa-folder-open" style="color:#3b82f6"></i>
+                        Upload Dokumen Pendukung
+                    </a>
+
+                    <a class="quick-card" style="background:#e9f8ef;color:#16924a" href="/pemabayan">
+                        <i class="far fa-credit-card" style="color:#22c55e"></i>
+                        Upload Bukti Pembayaran
+                    </a>
+
+                    <a class="quick-card" style="background:#fff7df;color:#b77900" href="/status-verifikasi">
+                        <i class="fas fa-shield-alt" style="color:#eab308"></i>
+                        Status Verifikasi
+                    </a>
+
+                    <a class="quick-card" style="background:#fff0f0;color:#d24b4b" href="/keberangkatan-jemaah">
+                        <i class="far fa-calendar-alt" style="color:#ef4444"></i>
+                        Jadwal Keberangkatan
+                    </a>
+
+                    <a class="quick-card" style="background:#f6efe6;color:#8a5b16" href="{{ route('profile') }}">
+                        <i class="far fa-user-circle" style="color:#c0841a"></i>
+                        Kelola Profil
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Notifikasi --}}
+        <div class="col-xl-4 mb-3">
+            <div class="jcard p-3">
+                <div class="d-flex justify-content-between">
+                    <h6 class="font-weight-bold">
+                        Notifikasi Terbaru
+                    </h6>
+
+                    <a
+                        href="{{ route('notifications.index') }}"
+                        class="small text-muted"
+                    >
+                        Lihat Semua
+                    </a>
+                </div>
+
+                @forelse($recentDocs as $doc)
+                    <div class="notif-item">
+                        <i class="fas fa-info-circle text-primary"></i>
+
+                        <div>
+                            <b>
+                                Dokumen
+                                {{ strtoupper(str_replace('_', ' ', $doc->jenis_dokumen)) }}
+                                {{ $doc->status === 'diproses'
+                                    ? 'sedang diverifikasi'
+                                    : $doc->status
+                                }}.
+                            </b>
+
+                            <small>
+                                {{ $doc->updated_at->translatedFormat('d M Y H:i') }}
+                            </small>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-muted small py-3">
+                        Belum ada notifikasi terbaru.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

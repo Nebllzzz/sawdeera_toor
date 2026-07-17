@@ -22,10 +22,13 @@
                         <h2 class="font-weight-bold mb-1">Dokumen Pendukung</h2>
                         <small class="text-muted">Dashboard &nbsp;›&nbsp; Dokumen Pendukung</small>
                     </div>
-                        <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard</a>
+                        <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mx-2"></i>Kembali ke Dashboard</a>
                 </div>
                 @if (session('success'))
                     <div class="alert alert-success mt-3">{{ session('success') }}</div>
+                @endif
+                @if (session('berhasil') && !session('success'))
+                    <div class="alert alert-success mt-3">{{ session('berhasil') }}</div>
                 @endif
                 @if (session('error'))
                     <div class="alert alert-danger mt-3">{{ session('error') }}</div>
@@ -54,7 +57,7 @@
                             </div>
                         </div>
                         @if ($summary['latest'])
-                            <div class="admin-note"><b><i class="fas fa-exclamation-circle mr-1"></i> Catatan Admin</b>
+                            <div class="admin-note"><b><i class="fas fa-exclamation-circle mx-1"></i> Catatan Admin</b>
                                 <p>{{ $summary['latest']->keterangan_penolakan }}</p><small>Diperiksa
                                     {{ $summary['latest']->verified_at?->translatedFormat('d M Y H:i') }} oleh
                                     {{ $summary['latest']->verifier->name ?? 'Admin' }}</small>
@@ -98,10 +101,10 @@
                                                 <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
                                                     class="btn-view"><i class="far fa-eye"></i> Lihat Dokumen</a>
                                             @endif
-                                            @if ($hasDeparture && $hasRegistration && (!$doc || $doc->status !== 'diverifikasi' && $doc->status !== 'diproses'))
+                                            @if ($hasDeparture && $hasRegistration && (!$doc || $doc->status !== 'diverifikasi'))
                                                 <button class="btn-upload open-upload" data-type="{{ $type }}"
                                                     data-label="{{ $meta['label'] }}"><i class="fas fa-upload"></i>
-                                                    Upload</button>
+                                                    {{ $doc ? 'Upload Ulang' : 'Upload' }}</button>
                                             @endif
                                         </div>
                                     </div>
@@ -122,9 +125,9 @@
                             <div class="guide-card">
                                 <h6><i class="fas fa-headset"></i> Butuh Bantuan?</h6>
                                 <p>Jika ada kendala dalam pengunggahan dokumen, hubungi tim kami.</p>
-                                <b><i class="fab fa-whatsapp mr-2"></i>0895-6007-91616</b>
+                                <b><i class="fab fa-whatsapp mx-2"></i>0895-6007-91616</b>
                                 <br>
-                                <b><i class="fas fa-envelope mr-2 mt-2"></i>info@sawdeeratour.com</b>
+                                <b><i class="fas fa-envelope mx-2 mt-2"></i>info@sawdeeratour.com</b>
                             </div>
                         </aside>
                     </div>
@@ -540,7 +543,7 @@
                     pdf = f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
                 $('#documentPreview').html((pdf ? `<object data="${docUrl}" type="application/pdf"></object>` :
                         `<img src="${docUrl}">`) +
-                    `<div class="preview-name">${pdf?'<i class="fas fa-file-pdf mr-1"></i>':'<i class="fas fa-image mr-1"></i>'}${name} · Klik untuk mengganti</div>`
+                    `<div class="preview-name">${pdf?'<i class="fas fa-file-pdf mx-1"></i>':'<i class="fas fa-image mx-1"></i>'}${name} · Klik untuk mengganti</div>`
                 ).removeClass('d-none');
                 $('#documentPlaceholder').addClass('d-none');
             });

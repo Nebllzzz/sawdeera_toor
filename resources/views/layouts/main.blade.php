@@ -68,30 +68,41 @@
 
         .aside {
             width: 280px !important;
-            background: #211408 !important;
+            background: linear-gradient(180deg, #2a1a0d 0%, #170f08 100%) !important;
             border-right: 1px solid rgba(255,255,255,0.08) !important;
         }
 
         .aside .menu .menu-item .menu-link {
-            color: #d9cdbb !important;
-            border-radius: 10px;
-            margin: 2px 10px;
+            color: #eee3d0 !important;
+            border-radius: 9px;
+            margin: 3px 14px;
+            min-height: 44px;
+            padding: 9px 13px;
+            transition: .18s ease;
         }
 
         .aside .menu .menu-item .menu-link:hover,
         .aside .menu .menu-item .menu-link.active {
-            background: linear-gradient(135deg, #6B3E20, #8B5A2B) !important;
+            background: linear-gradient(135deg, #c48a27, #9a671d) !important;
             color: #fff !important;
-            box-shadow: 0 4px 12px rgba(107, 62, 32, 0.35);
+            box-shadow: 0 8px 18px rgba(166, 109, 18, 0.28);
+        }
+
+        .aside .menu .menu-title {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.2;
         }
 
         .aside-logo {
-            background: #1D1104;
+            background: #1a1109;
             border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-top: 18px !important;
+            padding-bottom: 18px !important;
         }
 
         .aside-menu {
-            padding-top: 8px;
+            padding-top: 4px;
         }
 
         .aside-menu .hover-scroll-overlay-y {
@@ -108,17 +119,81 @@
             display: none;
         }
 
-        .menu-icon{
-            background: #E6C27A !important;
-            color: #211408 !important;
+        .aside .menu-icon{
+            background: transparent !important;
+            color: #d5a849 !important;
+            width: 24px;
+            min-width: 24px;
+            margin-right: 10px;
+            font-size: 15px;
+        }
+
+        .aside .menu-link.active .menu-icon,
+        .aside .menu-link:hover .menu-icon {
+            color: #fff !important;
+        }
+
+        .sidebar-help-card {
+            margin: 28px 14px 14px;
+            padding: 16px;
+            border-radius: 10px;
+            background: linear-gradient(160deg, rgba(122,80,22,.45), rgba(38,24,11,.9));
+            border: 1px solid rgba(230,194,122,.18);
+            color: #f8efd9;
+            box-shadow: inset 0 1px rgba(255,255,255,.05);
+        }
+
+        .sidebar-help-card b {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-help-card p,
+        .sidebar-help-card small {
+            color: #cdbf9f;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .sidebar-help-card a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 36px;
+            border-radius: 7px;
+            color: #f7d58a;
+            border: 1px solid rgba(231,185,90,.45);
+            background: rgba(70,45,15,.7);
+            font-weight: 700;
+            font-size: 12px;
+            margin: 12px 0 8px;
         }
 
         .header {
             background: #fff !important;
             border-bottom: 1px solid #e8e8e8;
-            height: 72px !important;
-            min-height: 72px;
+            height: 96px !important;
+            min-height: 96px;
             padding: 0 1rem;
+        }
+
+        .header .container-fluid {
+            min-height: 96px;
+            gap: 16px;
+            align-items: center !important;
+        }
+
+        .header h2 {
+            margin: 2px 0 6px;
+            font-size: 22px;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .header small {
+            line-height: 1.35;
         }
 
         .content {
@@ -278,10 +353,10 @@
             <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
                 <div class="header align-items-stretch">
                     <div class="container-fluid d-flex align-items-stretch justify-content-between px-8">
-                        <div class="d-flex align-items-center">
-                            <button class="btn btn-icon btn-active-color-primary me-3" id="kt_aside_toggle" type="button">
-                                <i class="ki-duotone ki-abstract-14 fs-2"></i>
-                            </button>
+                        <div>
+                            <small class="fs-4">Assalamu'alaikum,</small>
+                            <h2>Halo, {{ Auth::user()->name }}</h2>
+                            <small>Selamat datang di Dashboard Sawdeera Toor</small>
                         </div>
 
                         <div class="d-flex align-items-center gap-3 py-3">
@@ -382,6 +457,7 @@
     <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.6.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment-hijri@2.1.2/moment-hijri.js"></script>
+
 
     <script>
         function logoutConfirm() {

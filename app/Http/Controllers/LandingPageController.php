@@ -4,11 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\PaketUmrah;
 use App\Models\Keberangkatan;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Yajra\DataTables\DataTables;
-
 
 class LandingPageController extends Controller
 {
@@ -39,21 +34,11 @@ class LandingPageController extends Controller
             'maskapaiPulang',
             'leader'
         ])
-        ->get()
-        ->filter(function ($item) use ($paket) {
-
-            if (!$item->tanggal_keberangkatan || !$item->tanggal_pulang) {
-                return false;
-            }
-
-            $start = Carbon::parse($item->tanggal_keberangkatan);
-            $end   = Carbon::parse($item->tanggal_pulang);
-
-            $selisih = $start->diffInDays($end) + 1;
-
-            return $selisih == $paket->durasi;
-        })
-        ->values();
+            ->where('paket_id', $paket->id)
+            ->whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+            ->whereDate('tanggal_keberangkatan', '>', today())
+            ->orderBy('tanggal_keberangkatan')
+            ->get();
 
         return response()->json([
             'paket' => $paket,

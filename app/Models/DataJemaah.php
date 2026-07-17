@@ -32,4 +32,9 @@ class DataJemaah extends Model
     public function dokumen(){
         return $this->hasMany(DokumenJemaah::class,'jemaah_id');
     }
+
+    public function verificationLogs()
+    {
+        return $this->hasMany(JemaahVerificationLog::class, 'jemaah_id');
+    }
 }

@@ -11,12 +11,14 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="dt">
+                            <table class="table table-hover align-middle" id="dt">
                                 <thead>
                                     <tr>
                                         <th>No</th>
                                         <th>Nama</th>
                                         <th>Email</th>
+                                        <th>Kelengkapan</th>
+                                        <th>Status Dokumen</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -31,7 +33,7 @@
         <script>
             $('#dt').DataTable({
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: {
                     url: '/admin/dokumen/data',
                     type: 'POST',
@@ -49,6 +51,14 @@
                 }, {
                     data: 'email',
                     name: 'user.email'
+                }, {
+                    data: 'kelengkapan',
+                    orderable: false,
+                    searchable: false
+                }, {
+                    data: 'status_dokumen',
+                    orderable: false,
+                    searchable: false
                 }, {
                     data: 'action',
                     orderable: false,

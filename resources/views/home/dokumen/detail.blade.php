@@ -51,11 +51,13 @@
                                                 type="application/pdf"><a href="{{ asset('storage/' . $doc->file_path) }}"
                                                     target="_blank">Buka PDF</a></object>
                                         @else
-                                            <img src="{{ asset('storage/' . $doc->file_path) }}" alt="{{ $meta['label'] }}">
+                                            <img src="{{ asset('storage/' . $doc->file_path) }}"
+                                                alt="{{ $meta['label'] }}">
                                         @endif
                                     </div>
-                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="open-file"><i
-                                            class="fas fa-external-link-alt mr-1"></i>Buka dokumen ukuran penuh</a>
+                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
+                                        class="open-file"><i class="fas fa-external-link-alt mr-1"></i>Buka dokumen ukuran
+                                        penuh</a>
                                     @if ($doc->keterangan_penolakan)
                                         <div class="rejection"><b>Catatan Penolakan</b>
                                             <p>{{ $doc->keterangan_penolakan }}</p>
@@ -64,7 +66,7 @@
                                     @if ($doc->status === 'diproses')
                                         <div class="verify-actions"><button class="btn btn-danger reject-doc"
                                                 data-id="{{ $doc->id }}">Tolak</button><button
-                                                class="btn btn-success approve-doc ml-2"
+                                                class="btn btn-success approve-doc mx-2"
                                                 data-id="{{ $doc->id }}">Verifikasi</button></div>
                                     @elseif($doc->status === 'ditolak')
                                         <div class="verify-actions"><button class="btn btn-success approve-doc"

@@ -22,7 +22,8 @@
                         <h2 class="font-weight-bold mb-1">Pembayaran</h2>
                         <small class="text-muted">Dashboard &nbsp;›&nbsp; Pembayaran</small>
                     </div>
-                        <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard</a>
+                    <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mx-2"></i>Kembali ke
+                        Dashboard</a>
                 </div>
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
@@ -97,7 +98,8 @@
                                         @endphp
                                         <div class="step {{ $state }}">
                                             <span>{{ $t->status === 'diverifikasi' ? '✓' : $t->urutan }}</span><small>{{ $t->nama_tahap }}
-                                                ({{ number_format($t->persentase, 2, ',', '.') }}%)</small><b>{{ ucfirst(str_replace('_', ' ', $t->status)) }}</b>
+                                                ({{ number_format($t->persentase, 2, ',', '.') }}%)
+                                            </small><b>{{ ucfirst(str_replace('_', ' ', $t->status)) }}</b>
                                         </div>
                                     @endforeach
                                 </div>
@@ -119,7 +121,8 @@
                                                     <td>{{ number_format($t->persentase, 2, ',', '.') }}%</td>
                                                     <td
                                                         class="{{ $t->jatuh_tempo->isPast() && $t->status !== 'diverifikasi' ? 'text-danger' : '' }}">
-                                                        <b>{{ $t->jatuh_tempo->translatedFormat('d F Y') }}</b></td>
+                                                        <b>{{ $t->jatuh_tempo->translatedFormat('d F Y') }}</b>
+                                                    </td>
                                                     <td>Rp {{ number_format($t->nominal, 0, ',', '.') }}</td>
                                                     <td><span
                                                             class="status-pill status-{{ $t->status }}">{{ ['belum_bayar' => 'Belum Dibayar', 'diproses' => 'Diverifikasi Admin', 'diverifikasi' => 'Lunas', 'ditolak' => 'Ditolak'][$t->status] ?? $t->status }}</span>
@@ -146,10 +149,10 @@
                             <div class="payment-card mb-3">
                                 <h6>Upload Bukti Pembayaran</h6>
                                 @if (!$current)
-                                    <div class="alert alert-success mb-0"><i class="fas fa-check-circle mr-2"></i>Semua
+                                    <div class="alert alert-success mb-0"><i class="fas fa-check-circle mx-2"></i>Semua
                                         tahap pembayaran sudah lunas dan diverifikasi.</div>
                                 @elseif($current->status === 'diproses')
-                                    <div class="alert alert-warning mb-0"><i class="fas fa-clock mr-2"></i>Bukti
+                                    <div class="alert alert-warning mb-0"><i class="fas fa-clock mx-2"></i>Bukti
                                         {{ $current->nama_tahap }} sedang diverifikasi admin. Tahap berikutnya akan terbuka
                                         setelah disetujui.</div>
                                 @else
@@ -166,8 +169,10 @@
                                         <div class="row">
                                             <div class="col-md-7 form-group"><label>Bukti Pembayaran</label><label
                                                     class="upload-zone" id="paymentUploadZone">
-                                                    <div id="uploadPlaceholder"><i class="fas fa-cloud-upload-alt"></i><b>Klik untuk
-                                                        memilih bukti pembayaran</b><small>JPG, JPEG, PNG, PDF · Maks. 5MB</small></div>
+                                                    <div id="uploadPlaceholder"><i
+                                                            class="fas fa-cloud-upload-alt"></i><b>Klik untuk
+                                                            memilih bukti pembayaran</b><small>JPG, JPEG, PNG, PDF · Maks.
+                                                            5MB</small></div>
                                                     <div id="uploadPreview" class="d-none"></div>
                                                     <input type="file" id="paymentProofInput" name="bukti_pembayaran"
                                                         accept=".jpg,.jpeg,.png,.pdf" required>
@@ -187,8 +192,11 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="text-right"><button class="btn-gold"><i
-                                                    class="fas fa-cloud-upload-alt mr-2"></i>{{ $current->status === 'ditolak' ? 'Kirim Ulang Bukti' : 'Kirim Bukti Pembayaran' }}</button>
+                                        <div class="justify-content-end">
+                                            <button class="btn-gold mt-2 w-100">
+                                                <i class="fas fa-cloud-upload-alt mx-2"></i>
+                                                {{ $current->status === 'ditolak' ? 'Kirim Ulang Bukti' : 'Kirim Bukti Pembayaran' }}
+                                            </button>
                                         </div>
                                     </form>
                                 @endif
@@ -205,7 +213,8 @@
                                                 Digital</small><b>QRIS</b><em>Tersedia 24 jam</em></span></div>
                                 </div>
                                 <div class="safe-info"><i class="fas fa-shield-alt"></i> Pastikan nama penerima adalah
-                                    <b>Sawdeera Tour</b> dan nominal sesuai tagihan aktif.</div>
+                                    <b>Sawdeera Tour</b> dan nominal sesuai tagihan aktif.
+                                </div>
                             </div>
                         </div>
                         <aside class="col-xl-3">
@@ -245,9 +254,9 @@
                             <div class="side-card">
                                 <h6><i class="fas fa-headset"></i> Butuh Bantuan?</h6>
                                 <p>Jika ada kendala dalam pengunggahan dokumen, hubungi tim kami.</p>
-                                <b><i class="fab fa-whatsapp mr-2"></i>0895-6007-91616</b>
+                                <b><i class="fab fa-whatsapp mx-2"></i>0895-6007-91616</b>
                                 <br>
-                                <b><i class="fas fa-envelope mr-2 mt-2"></i>info@sawdeeratour.com</b>
+                                <b><i class="fas fa-envelope mx-2 mt-2"></i>info@sawdeeratour.com</b>
                             </div>
                         </aside>
                     </div>
@@ -704,12 +713,12 @@
                     const escapedName = $('<div>').text(file.name).html();
                     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-                    preview.innerHTML = isPdf
-                        ? `<object data="${objectUrl}" type="application/pdf">
+                    preview.innerHTML = isPdf ?
+                        `<object data="${objectUrl}" type="application/pdf">
                                <div class="py-5"><i class="fas fa-file-pdf text-danger fa-3x"></i><p>Preview PDF tidak didukung browser ini.</p></div>
-                           </object><div class="preview-caption"><i class="fas fa-file-pdf mr-2"></i>${escapedName} · Klik untuk mengganti</div>`
-                        : `<img src="${objectUrl}" alt="Preview bukti pembayaran">
-                           <div class="preview-caption"><i class="fas fa-image mr-2"></i>${escapedName} · Klik untuk mengganti</div>`;
+                           </object><div class="preview-caption"><i class="fas fa-file-pdf mx-2"></i>${escapedName} · Klik untuk mengganti</div>` :
+                        `<img src="${objectUrl}" alt="Preview bukti pembayaran">
+                           <div class="preview-caption"><i class="fas fa-image mx-2"></i>${escapedName} · Klik untuk mengganti</div>`;
 
                     placeholder.classList.add('d-none');
                     preview.classList.remove('d-none');

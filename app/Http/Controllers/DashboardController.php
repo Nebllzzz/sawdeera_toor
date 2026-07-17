@@ -57,7 +57,7 @@ class DashboardController extends Controller
                 ->limit(5)->get();
 
             // nearest keberangkatan
-            $nearKeberangkatan = Keberangkatan::with('leader', 'maskapaiBerangkat')
+            $nearKeberangkatan = Keberangkatan::with('leader', 'maskapaiBerangkat', 'paket')
                 ->where('tanggal_keberangkatan', '>=', now())
                 ->orderBy('tanggal_keberangkatan')
                 ->limit(5)->get();
@@ -114,6 +114,7 @@ class DashboardController extends Controller
             return [$k => $found->status];
         })->toArray();
 
+        $uploadedCount = collect($docStatus)->filter(fn($s) => in_array($s, ['diproses', 'diverifikasi', 'ditolak'], true))->count();
         $missingCount = collect($docStatus)->filter(fn($s) => $s === 'missing')->count();
         $rejectedCount = collect($docStatus)->filter(fn($s) => $s === 'ditolak')->count();
         $completeCount = collect($docStatus)->filter(fn($s) => $s === 'diverifikasi')->count();
@@ -162,7 +163,7 @@ class DashboardController extends Controller
         // 1. data diri
         $score++;
         // docs
-        $score += $completeCount; // each verified doc counts
+        $score += $uploadedCount; // dokumen yang sudah upload tetap dihitung sebagai progress
         // pembayaran
         if ($latestPayment && $latestPayment->status === 'diverifikasi') $score++;
 
@@ -179,6 +180,7 @@ class DashboardController extends Controller
             'missingCount',
             'rejectedCount',
             'completeCount',
+            'uploadedCount',
             'latestPayment',
             'kJ',
             'countdown',

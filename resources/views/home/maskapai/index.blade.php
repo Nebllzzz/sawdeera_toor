@@ -30,7 +30,7 @@
 
                         <div class="table-responsive">
 
-                            <table class="table table-striped text-center" id="dt">
+                            <table class="table table-hover align-middle" id="dt">
 
                                 <thead>
 
@@ -151,7 +151,7 @@
                 lengthMenu: [10, 25, 50, 100],
 
                 processing: true,
-                serverSide: true,
+                serverSide: false,
 
                 ajax: {
                     url: "/maskapai/data",

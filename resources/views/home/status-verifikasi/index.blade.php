@@ -8,7 +8,7 @@
             'rejected' => 'fa-exclamation',
             'waiting' => 'fa-ellipsis-h',
         ];
-        $applicationLabels = ['aktif' => 'Aktif', 'cancel' => 'Dibatalkan', 'reschedule' => 'Penjadwalan Ulang'];
+        $applicationLabels = ['pendaftaran' => 'Pendaftaran', 'setuju' => 'Setuju', 'reschedule' => 'Penjadwalan Ulang'];
         $applicationStatus = $pengajuan?->status;
         $bottomLabel = $applicationStatus
             ? $applicationLabels[$applicationStatus] ?? ucwords(str_replace('_', ' ', $applicationStatus))
@@ -34,41 +34,58 @@
                             </div>
                         </div>
 
-                        <div class="flow-card">
-                            <div class="flow-linear">
+                        <div class="flow-card progress-flow-card">
+                            <div class="progress-summary">
+                                <div class="progress-ring" style="--progress: {{ $progressPercent }};">
+                                    <span>{{ $progressPercent }}%</span>
+                                    <small>Selesai</small>
+                                </div>
+                                <div>
+                                    <h5>Progress Pendaftaran Umrah</h5>
+                                    <p class="mb-0">{{ $completedCount }} dari 6 tahap selesai</p>
+                                </div>
+                            </div>
+                            <div class="flow-linear six-steps">
                                 @include('home.status-verifikasi.partials.node', [
                                     'number' => 1,
-                                    'title' => 'Pilih Paket',
+                                    'title' => 'Registrasi Akun',
+                                    'step' => $steps['account'],
+                                    'icon' => 'fa-user-plus',
+                                ])
+                                <span class="connector {{ $steps['account']['state'] === 'verified' ? 'done' : '' }}"></span>
+                                @include('home.status-verifikasi.partials.node', [
+                                    'number' => 2,
+                                    'title' => 'Pilih Paket Umrah',
                                     'step' => $steps['package'],
                                     'icon' => 'fa-cube',
                                 ])
                                 <span class="connector {{ $steps['package']['state'] === 'verified' ? 'done' : '' }}"></span>
                                 @include('home.status-verifikasi.partials.node', [
-                                    'number' => 2,
-                                    'title' => 'Isi Data Diri',
+                                    'number' => 3,
+                                    'title' => 'Lengkapi Data Diri',
                                     'step' => $steps['profile'],
-                                    'icon' => 'fa-user',
+                                    'icon' => 'fa-id-card',
                                 ])
                                 <span class="connector {{ $steps['profile']['state'] === 'verified' ? 'done' : '' }}"></span>
                                 @include('home.status-verifikasi.partials.node', [
-                                    'number' => 3,
-                                    'title' => 'Dokumen Pendukung',
+                                    'number' => 4,
+                                    'title' => 'Upload Dokumen Pendukung',
                                     'step' => $steps['documents'],
                                     'icon' => 'fa-file-alt',
                                 ])
                                 <span class="connector {{ $steps['documents']['state'] === 'verified' ? 'done' : '' }}"></span>
                                 @include('home.status-verifikasi.partials.node', [
-                                    'number' => 4,
-                                    'title' => 'Pembayaran',
+                                    'number' => 5,
+                                    'title' => 'Upload Bukti Pembayaran',
                                     'step' => $steps['payment'],
-                                    'icon' => 'fa-credit-card',
+                                    'icon' => 'fa-receipt',
                                 ])
                                 <span class="connector {{ $steps['payment']['state'] === 'verified' ? 'done' : '' }}"></span>
                                 @include('home.status-verifikasi.partials.node', [
-                                    'number' => 5,
-                                    'title' => 'Selesai',
-                                    'step' => $steps['finish'],
-                                    'icon' => 'fa-check-circle',
+                                    'number' => 6,
+                                    'title' => 'Verifikasi/Approval Admin',
+                                    'step' => $steps['approval'],
+                                    'icon' => 'fa-shield-alt',
                                 ])
                             </div>
                         </div>
@@ -77,7 +94,15 @@
                         <div class="detail-list">
                             @include('home.status-verifikasi.partials.row', [
                                 'number' => 1,
-                                'title' => 'Pilih Paket',
+                                'title' => 'Registrasi Akun',
+                                'subtitle' => 'Akun pengguna Sawdeera Toor.',
+                                'step' => $steps['account'],
+                                'icon' => 'fa-user-plus',
+                                'url' => null,
+                            ])
+                            @include('home.status-verifikasi.partials.row', [
+                                'number' => 2,
+                                'title' => 'Pilih Paket Umrah',
                                 'subtitle' => $pengajuan
                                     ? $pengajuan->paketUmrah->nama_paket
                                     : 'Paket umrah yang Anda pilih.',
@@ -86,35 +111,35 @@
                                 'url' => '/paket-umrah-jemaah',
                             ])
                             @include('home.status-verifikasi.partials.row', [
-                                'number' => 2,
-                                'title' => 'Isi Data Diri',
+                                'number' => 3,
+                                'title' => 'Lengkapi Data Diri',
                                 'subtitle' => 'Data pribadi dan identitas diri Anda.',
                                 'step' => $steps['profile'],
-                                'icon' => 'fa-user',
+                                'icon' => 'fa-id-card',
                                 'url' => '/pendaftaran-saya',
                             ])
                             @include('home.status-verifikasi.partials.row', [
-                                'number' => 3,
-                                'title' => 'Dokumen Pendukung',
+                                'number' => 4,
+                                'title' => 'Upload Dokumen Pendukung',
                                 'subtitle' => (($jemaah->status_pernikahan ?? null) === 'menikah' ? 'Tujuh' : 'Enam') . ' dokumen persyaratan keberangkatan.',
                                 'step' => $steps['documents'],
                                 'icon' => 'fa-file-alt',
                                 'url' => '/dokumen',
                             ])
                             @include('home.status-verifikasi.partials.row', [
-                                'number' => 4,
-                                'title' => 'Pembayaran',
-                                'subtitle' => 'Rencana dan verifikasi pembayaran paket.',
+                                'number' => 5,
+                                'title' => 'Upload Bukti Pembayaran',
+                                'subtitle' => 'Bukti pembayaran paket umrah.',
                                 'step' => $steps['payment'],
-                                'icon' => 'fa-credit-card',
+                                'icon' => 'fa-receipt',
                                 'url' => '/pemabayan',
                             ])
                             @include('home.status-verifikasi.partials.row', [
-                                'number' => 5,
-                                'title' => 'Selesai',
-                                'subtitle' => 'Seluruh cabang verifikasi telah disetujui.',
-                                'step' => $steps['finish'],
-                                'icon' => 'fa-check-circle',
+                                'number' => 6,
+                                'title' => 'Verifikasi/Approval Admin',
+                                'subtitle' => 'Approval data, dokumen, dan pembayaran.',
+                                'step' => $steps['approval'],
+                                'icon' => 'fa-shield-alt',
                                 'url' => null,
                             ])
                         </div>
@@ -129,14 +154,6 @@
                         </div>
                     </div>
                     <aside class="col-xl-3">
-                        <div class="side-info">
-                            <h6><i class="far fa-file-alt"></i> Informasi Pendaftaran</h6><label>Nomor
-                                Pendaftaran</label><b>UMR-{{ $user->created_at->format('ym') }}-{{ str_pad($user->id, 4, '0', STR_PAD_LEFT) }}</b><label>Tanggal
-                                Daftar</label><b>{{ $user->created_at->translatedFormat('d M Y, H:i') }}
-                                WIB</b><label>Paket
-                                Umrah</label><b>{{ $pengajuan?->paketUmrah?->nama_paket ?? 'Belum dipilih' }}</b><label>Status
-                                Saat Ini</label><span class="current-status">{{ $bottomLabel }}</span>
-                        </div>
                         <div class="side-info">
                             <h6>Apa yang terjadi selanjutnya?</h6>
                             <div class="next-item"><i class="far fa-clock"></i><span>Tim kami akan memverifikasi data dan
@@ -191,11 +208,63 @@
             margin: 14px 0 22px
         }
 
+        .progress-summary {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 22px
+        }
+
+        .progress-ring {
+            --progress: 0;
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            background: conic-gradient(#a66a0d calc(var(--progress) * 1%), #f3eadb 0);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex: 0 0 auto
+        }
+
+        .progress-ring:before {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            background: #fff;
+            border-radius: 50%
+        }
+
+        .progress-ring span,
+        .progress-ring small {
+            position: relative;
+            z-index: 1;
+            display: block
+        }
+
+        .progress-ring span {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1f1f1f
+        }
+
+        .progress-ring small {
+            color: #666
+        }
+
         .flow-linear {
             display: flex;
             align-items: flex-start;
             justify-content: center;
             width: 100%
+        }
+
+        .flow-linear.six-steps {
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding-bottom: 8px
         }
 
         .connector {
@@ -211,7 +280,8 @@
 
         .verify-node {
             text-align: center;
-            width: 145px;
+            width: 125px;
+            flex: 0 0 125px;
             position: relative
         }
 
@@ -247,6 +317,12 @@
         .verify-node b,
         .verify-node small {
             display: block
+        }
+
+        .node-number {
+            color: #555;
+            font-weight: 700;
+            margin-top: 6px
         }
 
         .verify-node>b {

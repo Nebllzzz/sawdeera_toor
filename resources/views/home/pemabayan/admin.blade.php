@@ -11,7 +11,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover" id="dt">
+                            <table class="table table-hover align-middle" id="dt">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -52,7 +52,7 @@
                     ">",
 
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: {
                     url: '/admin/pemabayan/data',
                     type: 'POST',

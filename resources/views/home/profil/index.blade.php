@@ -94,7 +94,7 @@
 
                     </div>
 
-                    <form method="POST" action="{{ route('registration.update') }}">
+                    <form method="POST" action="{{ route('registration.update') }}" enctype="multipart/form-data">
                         @csrf
                         <fieldset @disabled(!$hasDeparture)>
 
@@ -267,6 +267,7 @@
             border-radius: 8px;
         }
 
+        .btn-save {
             background: #b9862c;
             color: #fff;
             border-radius: 7px;
