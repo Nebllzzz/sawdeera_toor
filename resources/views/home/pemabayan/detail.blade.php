@@ -7,13 +7,17 @@
     <div class="content-wrapper admin-payment-detail">
         <section class="content py-4">
             <div class="container-fluid">
-                <a href="/admin/pemabayan-admin" class="text-muted"><i class="fas fa-arrow-left mr-2"></i>Kembali</a>
-                <div class="d-flex justify-content-between align-items-start my-3">
-                    <div>
-                        <h2 class="font-weight-bold mb-1">Detail Pembayaran</h2>
-                        <p class="text-muted">{{ $pembayaran->jemaah->user->name }} · {{ $trip->paketUmrah->nama_paket }}</p>
-                    </div><span class="badge badge-light p-2">{{ $pembayaran->jumlah_tahap }} Tahap</span>
-                </div>
+                <x-page-heading
+                    title="Detail Pembayaran"
+                    :description="$pembayaran->jemaah->user->name . ' · ' . $trip->paketUmrah->nama_paket"
+                    section="Verifikasi Pembayaran"
+                    current="Detail"
+                >
+                    <x-slot:actions>
+                        <a href="/admin/pemabayan-admin" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Kembali</a>
+                        <span class="badge badge-light p-2">{{ $pembayaran->jumlah_tahap }} Tahap</span>
+                    </x-slot:actions>
+                </x-page-heading>
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="detail-card mb-3">

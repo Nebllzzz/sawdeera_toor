@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DataJemaah;
+use App\Models\Keberangkatan;
 use App\Models\Pembayaran;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,10 +41,11 @@ class PaymentInstallmentFlowTest extends TestCase
             'harga' => 30000000, 'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $jadwal = DB::table('keberangkatan')->insertGetId([
+            'paket_id' => $paket, 'kuota' => 40,
             'maskapai_berangkat_id' => $maskapai, 'maskapai_pulang_id' => $maskapai,
             'tanggal_keberangkatan' => today()->addDays(90), 'tanggal_pulang' => today()->addDays(98),
             'jam_berangkat' => '08:00', 'jam_tiba' => '16:00', 'jam_pulang' => '10:00',
-            'jam_tiba_pulang' => '18:00', 'status' => 'pendaftaran',
+            'jam_tiba_pulang' => '18:00', 'status' => Keberangkatan::STATUS_AKTIF,
             'created_at' => now(), 'updated_at' => now(),
         ]);
 

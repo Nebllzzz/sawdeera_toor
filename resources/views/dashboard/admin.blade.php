@@ -341,6 +341,12 @@
     </style>
 
     <div class="content-wrapper adash">
+        <x-page-heading
+            :title="'Dashboard ' . $roleTitle"
+            description="Pantau ringkasan operasional dan aktivitas terbaru Sawdeera Tour."
+            current="Ringkasan"
+        />
+
         <div class="summary-grid">
             @foreach ($summaryItems as $item)
                 <a class="acard summary-box" href="{{ $item['url'] }}">

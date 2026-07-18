@@ -11,13 +11,16 @@
     <div class="content-wrapper">
         <section class="content">
             <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h2 class="font-weight-bold mb-1">Detail Jadwal Keberangkatan</h2>
-                        <small class="text-muted">Dashboard &nbsp;›&nbsp; Jadwal Keberangkatan &nbsp;›&nbsp; Detail</small>
-                    </div>
-                    <a href="/keberangkatan" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali</a>
-                </div>
+                <x-page-heading
+                    title="Detail Jadwal Keberangkatan"
+                    :description="$keberangkatan->kode_keberangkatan . ' · ' . ($keberangkatan->paket?->nama_paket ?? 'Paket belum dipilih')"
+                    section="Jadwal Keberangkatan"
+                    current="Detail"
+                >
+                    <x-slot:actions>
+                        <a href="/keberangkatan" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Kembali</a>
+                    </x-slot:actions>
+                </x-page-heading>
 
                 @if(session('berhasil'))
                     <div class="alert alert-success">{{ session('berhasil') }}</div>

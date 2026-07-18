@@ -7,12 +7,19 @@
         <section class="content">
             <div class="container-fluid">
 
+                <x-page-heading
+                    title="Data Hotel"
+                    description="Kelola hotel Makkah dan Madinah yang digunakan pada paket umrah."
+                    section="Master Data"
+                    current="Hotel"
+                />
+
                 <div class="card mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
 
                         <h3>Data Hotel</h3>
 
-                        <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalHotel" onclick="createHotel()">
+                        <button type="button" class="btn btn-sawdeera1" id="btnAddHotel">
                             <i class="fas fa-plus mr-2 text-white"></i>
                             Tambah Hotel
                         </button>
@@ -57,7 +64,7 @@
 
                     <div class="modal-header">
                         <h4 id="modalTitle">Tambah Hotel</h4>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
                     <div class="modal-body">
@@ -167,7 +174,11 @@
 
                 $("#formHotel")[0].reset();
 
+                showAppModal("modalHotel");
+
             }
+
+            $("#btnAddHotel").on("click", createHotel);
 
 
             $(document).on("click", ".editHotel", function() {
@@ -183,7 +194,7 @@
                 $("#bintang").val(btn.data("bintang"));
                 $("#tipe_kamar").val(btn.data("tipe"));
 
-                $("#modalHotel").modal("show");
+                showAppModal("modalHotel");
 
             });
 
@@ -204,7 +215,7 @@
 
                     success: function(res) {
 
-                        $("#modalHotel").modal("hide");
+                        hideAppModal("modalHotel");
 
                         Swal.fire("Success", res.message, "success");
 

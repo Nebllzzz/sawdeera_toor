@@ -11,13 +11,17 @@
     <div class="content-wrapper admin-doc-page px-3">
         <section class="content py-4">
             <div class="container-fluid">
-                <a href="/admin/dokumen" class="text-muted"><i class="fas fa-arrow-left mr-2"></i>Kembali ke daftar jemaah</a>
-                <div class="d-flex justify-content-between align-items-start my-3">
-                    <div>
-                        <h2 class="font-weight-bold mb-1">Detail Dokumen Jemaah</h2>
-                        <p class="text-muted">{{ $jemaah->user->name }} · {{ $jemaah->user->email }}</p>
-                    </div><span class="summary-badge status-{{ $summary['status'] }}">{{ $summary['label'] }}</span>
-                </div>
+                <x-page-heading
+                    title="Detail Dokumen Jemaah"
+                    :description="$jemaah->user->name . ' · ' . $jemaah->user->email"
+                    section="Verifikasi Dokumen"
+                    current="Detail"
+                >
+                    <x-slot:actions>
+                        <a href="/admin/dokumen" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Kembali</a>
+                        <span class="summary-badge status-{{ $summary['status'] }}">{{ $summary['label'] }}</span>
+                    </x-slot:actions>
+                </x-page-heading>
 
                 <div class="jemaah-summary mb-4">
                     <div><small>Nama Lengkap</small><b>{{ $jemaah->user->name }}</b></div>

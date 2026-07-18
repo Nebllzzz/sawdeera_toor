@@ -10,42 +10,42 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('keberangkatan', function (Blueprint $table) {
-            if (!Schema::hasColumn('keberangkatan', 'paket_id')) {
+            if (! Schema::hasColumn('keberangkatan', 'paket_id')) {
                 $table->foreignId('paket_id')->nullable()->after('id')->constrained('paket_umrah')->nullOnDelete();
             }
-            if (!Schema::hasColumn('keberangkatan', 'kuota')) {
+            if (! Schema::hasColumn('keberangkatan', 'kuota')) {
                 $table->unsignedInteger('kuota')->default(40)->after('tour_leader_id');
             }
-            if (!Schema::hasColumn('keberangkatan', 'alasan_revisi')) {
+            if (! Schema::hasColumn('keberangkatan', 'alasan_revisi')) {
                 $table->text('alasan_revisi')->nullable()->after('status');
             }
-            if (!Schema::hasColumn('keberangkatan', 'keterangan')) {
+            if (! Schema::hasColumn('keberangkatan', 'keterangan')) {
                 $table->text('keterangan')->nullable()->after('alasan_revisi');
             }
-            if (!Schema::hasColumn('keberangkatan', 'created_by')) {
+            if (! Schema::hasColumn('keberangkatan', 'created_by')) {
                 $table->foreignId('created_by')->nullable()->after('keterangan')->constrained('users')->nullOnDelete();
             }
-            if (!Schema::hasColumn('keberangkatan', 'updated_by')) {
+            if (! Schema::hasColumn('keberangkatan', 'updated_by')) {
                 $table->foreignId('updated_by')->nullable()->after('created_by')->constrained('users')->nullOnDelete();
             }
         });
 
         $this->stringStatus('keberangkatan');
         DB::table('keberangkatan')->whereIn('status', ['pendaftaran', 'persiapan'])->update(['status' => 'aktif']);
-        DB::statement('
-            UPDATE keberangkatan k
-            JOIN (
-                SELECT keberangkatan_id, MIN(paket_umrah_id) AS paket_id
-                FROM keberangkatan_jemaah
-                GROUP BY keberangkatan_id
-            ) kj ON kj.keberangkatan_id = k.id
-            SET k.paket_id = kj.paket_id
-            WHERE k.paket_id IS NULL
-        ');
+        DB::table('keberangkatan_jemaah')
+            ->selectRaw('keberangkatan_id, MIN(paket_umrah_id) AS paket_id')
+            ->groupBy('keberangkatan_id')
+            ->get()
+            ->each(function ($row) {
+                DB::table('keberangkatan')
+                    ->where('id', $row->keberangkatan_id)
+                    ->whereNull('paket_id')
+                    ->update(['paket_id' => $row->paket_id]);
+            });
 
         $this->stringStatus('keberangkatan_jemaah');
         Schema::table('keberangkatan_jemaah', function (Blueprint $table) {
-            if (!Schema::hasColumn('keberangkatan_jemaah', 'created_at')) {
+            if (! Schema::hasColumn('keberangkatan_jemaah', 'created_at')) {
                 $table->timestamps();
             }
         });
@@ -97,6 +97,7 @@ return new class extends Migration
         $driver = DB::getDriverName();
         if ($driver === 'mysql') {
             DB::statement("ALTER TABLE {$table} MODIFY status VARCHAR(40) NOT NULL");
+
             return;
         }
 

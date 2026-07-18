@@ -243,6 +243,25 @@
             </a>
         </div>
 
+        {{-- Rekapitulasi Data Jemaah --}}
+        <div class="menu-item">
+            <a
+                href="{{ route('admin.jemaah-recap.index') }}"
+                class="menu-link {{ $active(
+                    'admin/rekapitulasi-jemaah',
+                    'admin/rekapitulasi-jemaah/*'
+                ) }}"
+            >
+                <span class="menu-icon">
+                    <i class="fas fa-chart-column"></i>
+                </span>
+
+                <span class="menu-title">
+                    Laporan Rekapitulasi Data Jemaah
+                </span>
+            </a>
+        </div>
+
         {{-- Jadwal Keberangkatan --}}
         <div class="menu-item">
             <a

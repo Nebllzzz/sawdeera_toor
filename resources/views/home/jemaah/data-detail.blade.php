@@ -5,13 +5,16 @@
     <div class="content-wrapper">
         <section class="content">
             <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div><small class="text-muted">Dashboard &nbsp;›&nbsp; Verifikasi Data Jemaah &nbsp;›&nbsp;
-                            Detail</small>
-                        <h2 class="font-weight-bold mt-2">Detail Data Jemaah</h2>
-                    </div>
-                    <a href="/jemaah/data-verifikasi" class="btn btn-outline-secondary">Kembali</a>
-                </div>
+                <x-page-heading
+                    title="Detail Data Jemaah"
+                    :description="'Periksa data lengkap milik ' . $user->name . '.'"
+                    section="Verifikasi Data Jemaah"
+                    current="Detail"
+                >
+                    <x-slot:actions>
+                        <a href="/jemaah/data-verifikasi" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Kembali</a>
+                    </x-slot:actions>
+                </x-page-heading>
                 <div class="row">
                     <div class="col-lg-8 mb-4">
                         <div class="card mb-4">

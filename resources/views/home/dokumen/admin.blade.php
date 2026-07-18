@@ -4,10 +4,12 @@
     <div class="content-wrapper px-3">
         <section class="content py-4">
             <div class="container-fluid">
-                <div class="mb-4">
-                    <h2 class="font-weight-bold mb-1">Verifikasi Dokumen Jemaah</h2>
-                    <p class="text-muted">Buka detail jemaah untuk memeriksa seluruh dokumen pendukung.</p>
-                </div>
+                <x-page-heading
+                    title="Verifikasi Dokumen Jemaah"
+                    description="Buka detail jemaah untuk memeriksa seluruh dokumen pendukung."
+                    section="Verifikasi Jemaah"
+                    current="Dokumen"
+                />
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="table-responsive">

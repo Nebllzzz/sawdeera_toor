@@ -9,14 +9,20 @@
 
             <div class="container-fluid">
 
+                <x-page-heading
+                    title="Data Maskapai"
+                    description="Kelola informasi maskapai untuk jadwal keberangkatan dan kepulangan."
+                    section="Master Data"
+                    current="Maskapai"
+                />
+
                 <div class="card mt-3">
 
                     <div class="card-header d-flex justify-content-between align-items-center">
 
                         <h3>Data Maskapai</h3>
 
-                        <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalMaskapai"
-                            onclick="createMaskapai()">
+                        <button type="button" class="btn btn-sawdeera1" id="btnAddMaskapai">
 
                             <i class="fas fa-plus mr-2 text-white"></i>
 
@@ -76,7 +82,7 @@
 
                         <h4 id="modalTitle">Tambah Maskapai</h4>
 
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
 
                     </div>
 
@@ -202,7 +208,11 @@
 
                 $("#formMaskapai")[0].reset();
 
+                showAppModal("modalMaskapai");
+
             }
+
+            $("#btnAddMaskapai").on("click", createMaskapai);
 
 
             $(document).on("click", ".editMaskapai", function() {
@@ -219,7 +229,7 @@
                 $("#asal_negara").val(btn.data("negara"));
                 $("#is_active").val(btn.data("status"));
 
-                $("#modalMaskapai").modal("show");
+                showAppModal("modalMaskapai");
 
             });
 
@@ -232,7 +242,7 @@
 
                     Swal.fire("Success", res.message, "success");
 
-                    $("#modalMaskapai").modal("hide");
+                    hideAppModal("modalMaskapai");
 
                     $("#dt").DataTable().ajax.reload();
 

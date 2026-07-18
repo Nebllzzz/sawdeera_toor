@@ -4,10 +4,14 @@
     <div class="content-wrapper">
         <section class="content">
             <div class="container-fluid">
-                <h2 class="font-weight-bold mb-1">Verifikasi Registrasi Akun Jemaah</h2>
-                <small class="text-muted">Dashboard &nbsp;›&nbsp; Verifikasi Registrasi Akun</small>
+                <x-page-heading
+                    title="Verifikasi Registrasi Akun Jemaah"
+                    description="Periksa dan tentukan status akun calon jemaah yang baru mendaftar."
+                    section="Verifikasi Jemaah"
+                    current="Registrasi Akun"
+                />
 
-                <div class="row mt-4">
+                <div class="row">
                     <div class="col-md-4 mb-3">
                         <div class="verify-stat"><span class="green"><i class="fas fa-users"></i></span>
                             <div><b>{{ $stats['menunggu'] }}</b>

@@ -7,13 +7,20 @@
         <section class="content">
             <div class="container-fluid">
 
+                <x-page-heading
+                    title="Paket Umrah"
+                    description="Kelola paket, harga, hotel, fasilitas, dan program perjalanan umrah."
+                    section="Master Data"
+                    current="Paket Umrah"
+                />
+
                 <div class="card mt-3">
 
                     <div class="card-header d-flex justify-content-between align-items-center">
 
                         <h3>Data Paket Umrah</h3>
 
-                        <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalPaket" onclick="createPaket()">
+                        <button type="button" class="btn btn-sawdeera1" id="btnAddPaket">
 
                             <i class="fas fa-plus mr-2 text-white"></i>
 
@@ -63,7 +70,7 @@
 
                     <div class="modal-header">
                         <h4 id="modalTitle">Tambah Paket</h4>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
                     <div class="modal-body">
@@ -322,7 +329,11 @@
 
                 $("#formPaket")[0].reset();
 
+                showAppModal("modalPaket");
+
             }
+
+            $("#btnAddPaket").on("click", createPaket);
 
             $(document).on("click", ".editPaket", function() {
 
@@ -340,7 +351,7 @@
                 $("#deskripsi").val(btn.data("deskripsi"));
                 $("#is_active").val(btn.data("status"));
 
-                $("#modalPaket").modal("show");
+                showAppModal("modalPaket");
 
             });
 
@@ -361,7 +372,7 @@
 
                     success: function(res) {
 
-                        $("#modalPaket").modal("hide");
+                        hideAppModal("modalPaket");
 
                         Swal.fire("Success", res.message, "success");
 
@@ -416,7 +427,7 @@
 
                 loadFasilitas(id);
 
-                $("#modalFasilitas").modal("show");
+                showAppModal("modalFasilitas");
 
             });
 
@@ -476,7 +487,7 @@
 
                 loadProgram(id);
 
-                $("#modalProgram").modal("show");
+                showAppModal("modalProgram");
 
             });
 
@@ -608,7 +619,7 @@
 
                     Swal.fire("Success", res.message, "success");
 
-                    $("#modalFasilitas").modal("hide");
+                    hideAppModal("modalFasilitas");
 
                 });
 
@@ -622,7 +633,7 @@
 
                     Swal.fire("Success", res.message, "success");
 
-                    $("#modalProgram").modal("hide");
+                    hideAppModal("modalProgram");
 
                 });
 

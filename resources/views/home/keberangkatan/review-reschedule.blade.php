@@ -5,15 +5,18 @@
     <div class="content-wrapper">
         <section class="content">
             <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h2 class="font-weight-bold mb-1">Review Reschedule Keberangkatan</h2>
-                        <small class="text-muted">Dashboard &nbsp;›&nbsp; Jadwal Keberangkatan &nbsp;›&nbsp; Review Reschedule</small>
-                    </div>
-                    <a href="/keberangkatan/detail/{{ $reschedule->keberangkatan_asal_id }}" class="btn btn-sawdeera1">
-                        <i class="fas fa-arrow-left mr-2"></i>Kembali
-                    </a>
-                </div>
+                <x-page-heading
+                    title="Review Reschedule Keberangkatan"
+                    description="Periksa perbandingan jadwal awal dan jadwal tujuan yang diajukan jemaah."
+                    section="Jadwal Keberangkatan"
+                    current="Review Reschedule"
+                >
+                    <x-slot:actions>
+                        <a href="/keberangkatan/detail/{{ $reschedule->keberangkatan_asal_id }}" class="btn btn-sawdeera1">
+                            <i class="fas fa-arrow-left me-2"></i>Kembali
+                        </a>
+                    </x-slot:actions>
+                </x-page-heading>
 
                 @if(session('berhasil'))
                     <div class="alert alert-success">{{ session('berhasil') }}</div>

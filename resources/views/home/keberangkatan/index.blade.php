@@ -6,6 +6,13 @@
         <section class="content">
             <div class="container-fluid">
 
+                <x-page-heading
+                    title="Jadwal Keberangkatan"
+                    description="Kelola jadwal, kuota, dan proses persetujuan keberangkatan jemaah."
+                    section="Keberangkatan"
+                    current="Daftar Jadwal"
+                />
+
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="mb-0">Daftar Jadwal Keberangkatan</h3>

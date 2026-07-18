@@ -189,17 +189,30 @@
     <section class="content py-4">
         <div class="container-fluid">
 
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-                <div class="mb-3 mb-md-0">
-                    <h2 class="font-weight-bold mb-1">Profile</h2>
-                    <small class="text-muted">Dashboard &nbsp;›&nbsp; Profile</small>
+            @if (in_array(auth()->user()->role, ['admin', 'operator'], true))
+                <x-page-heading
+                    title="Profil Akun"
+                    description="Perbarui informasi akun dan keamanan profil Anda."
+                    section="Pengaturan"
+                    current="Profil"
+                >
+                    <x-slot:actions>
+                        <a href="/dashboard" class="btn btn-outline-secondary btn-modern-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Kembali ke Dashboard
+                        </a>
+                    </x-slot:actions>
+                </x-page-heading>
+            @else
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                    <div class="mb-3 mb-md-0">
+                        <h2 class="font-weight-bold mb-1">Profile</h2>
+                        <small class="text-muted">Dashboard &nbsp;›&nbsp; Profile</small>
+                    </div>
+                    <a href="/dashboard" class="btn btn-outline-secondary btn-modern-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+                    </a>
                 </div>
-
-                <a href="/dashboard" class="btn btn-outline-secondary btn-modern-secondary">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Kembali ke Dashboard
-                </a>
-            </div>
+            @endif
 
             @if(session('berhasil'))
                 <div class="alert alert-success border-0 shadow-sm" style="border-radius:14px">

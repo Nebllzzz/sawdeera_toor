@@ -6,21 +6,32 @@
     <div class="content-wrapper notifications-page">
         <div class="content-header notif-header">
             <div class="container-fluid">
-                <div class="notif-titlebar">
-                    <div>
-                        <h1>Notifikasi</h1>
-                        <small>Semua pembaruan akun, dokumen, dan pembayaran.</small>
+                @if (in_array(auth()->user()->role, ['admin', 'operator'], true))
+                    <x-page-heading
+                        title="Notifikasi"
+                        description="Semua pembaruan akun, dokumen, dan pembayaran."
+                        current="Notifikasi"
+                    >
+                        @if($notifications->count())
+                            <x-slot:actions>
+                                <form action="{{ route('notifications.readAll') }}" method="POST" style="display:inline">
+                                    @csrf
+                                    <button class="btn btn-sm btn-primary"><i class="fas fa-check-double me-1"></i>Tandai Semua Dibaca</button>
+                                </form>
+                            </x-slot:actions>
+                        @endif
+                    </x-page-heading>
+                @else
+                    <div class="notif-titlebar">
+                        <div><h1>Notifikasi</h1><small>Semua pembaruan akun, dokumen, dan pembayaran.</small></div>
+                        @if($notifications->count())
+                            <form action="{{ route('notifications.readAll') }}" method="POST" style="display:inline">
+                                @csrf
+                                <button class="btn btn-sm btn-primary"><i class="fas fa-check-double mr-1"></i>Tandai Semua Dibaca</button>
+                            </form>
+                        @endif
                     </div>
-                    @if($notifications->count())
-                        <form action="{{ route('notifications.readAll') }}" method="POST" style="display:inline">
-                            @csrf
-                            <button class="btn btn-sm btn-primary">
-                                <i class="fas fa-check-double mr-1"></i>
-                                Tandai Semua Dibaca
-                            </button>
-                        </form>
-                    @endif
-                </div>
+                @endif
             </div>
         </div>
 

@@ -242,6 +242,65 @@
             background: transparent;
         }
 
+        .recap-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin: 4px 0 18px;
+        }
+
+        .recap-heading h1 {
+            margin: 8px 0 4px;
+            color: #241d16;
+            font-size: 25px;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .recap-heading p {
+            margin: 0;
+            color: #7c766f;
+            font-size: 13px;
+        }
+
+        .recap-breadcrumb {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: #928a80;
+            font-size: 11px;
+        }
+
+        .recap-breadcrumb a {
+            color: #8b5b19;
+            font-weight: 700;
+        }
+
+        .recap-breadcrumb i {
+            color: #bbb2a8;
+            font-size: 7px;
+        }
+
+        .recap-heading-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .recap-heading {
+                display: block;
+            }
+
+            .recap-heading-actions {
+                width: 100%;
+                margin-top: 14px;
+            }
+        }
+
         .card {
             border-radius: 14px;
             border: 1px solid #e4e6ef;
@@ -471,6 +530,37 @@
                     document.getElementById('logout-form').submit();
                 }
             });
+        }
+
+        function showAppModal(target) {
+            const element = typeof target === 'string'
+                ? document.getElementById(target.replace(/^#/, ''))
+                : target;
+
+            if (!element) return;
+            if (window.bootstrap && window.bootstrap.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(element).show();
+                return;
+            }
+            if (window.jQuery && typeof window.jQuery(element).modal === 'function') {
+                window.jQuery(element).modal('show');
+            }
+        }
+
+        function hideAppModal(target) {
+            const element = typeof target === 'string'
+                ? document.getElementById(target.replace(/^#/, ''))
+                : target;
+
+            if (!element) return;
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modal = window.bootstrap.Modal.getInstance(element);
+                if (modal) modal.hide();
+                return;
+            }
+            if (window.jQuery && typeof window.jQuery(element).modal === 'function') {
+                window.jQuery(element).modal('hide');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {

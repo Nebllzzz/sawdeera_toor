@@ -8,8 +8,8 @@ use App\Models\KeberangkatanJemaah;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DocumentVerificationFlowTest extends TestCase
@@ -49,7 +49,7 @@ class DocumentVerificationFlowTest extends TestCase
         ]);
         KeberangkatanJemaah::create([
             'jemaah_id' => $jemaah->id, 'paket_umrah_id' => $paket,
-            'keberangkatan_id' => $jadwal, 'status' => 'aktif',
+            'keberangkatan_id' => $jadwal, 'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
         ]);
 
         $this->actingAs($jemaahUser)->get('/dokumen')
@@ -126,7 +126,7 @@ class DocumentVerificationFlowTest extends TestCase
         ]);
         KeberangkatanJemaah::create([
             'jemaah_id' => $jemaah->id, 'paket_umrah_id' => $paket,
-            'keberangkatan_id' => $jadwal, 'status' => 'aktif',
+            'keberangkatan_id' => $jadwal, 'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
         ]);
 
         $this->actingAs($jemaahUser)->post('/dokumen/upload', [

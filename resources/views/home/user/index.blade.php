@@ -5,6 +5,13 @@
 <div class="content-wrapper">
     <section class="content">
         <div class="container-fluid">
+            <x-page-heading
+                title="Data Admin"
+                description="Kelola akun admin dan operator yang memiliki akses ke sistem."
+                section="Pengaturan"
+                current="Data Admin"
+            />
+
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card mt-3">

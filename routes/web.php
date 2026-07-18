@@ -15,6 +15,7 @@ use App\Http\Controllers\TourLeaderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\JemaahRecapController;
 use App\Http\Controllers\StatusVerificationController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -184,6 +185,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/jemaah/detail/{id}', [ReportController::class, 'detail']);
     Route::get('/laporan/jemaah/export/excel', [ReportController::class, 'exportExcel']);
     Route::get('/laporan/jemaah/export/pdf', [ReportController::class, 'exportPdf']);
+
+    // rekapitulasi data jemaah (admin)
+    Route::get('/admin/rekapitulasi-jemaah', [JemaahRecapController::class, 'index'])->name('admin.jemaah-recap.index');
+    Route::get('/admin/rekapitulasi-jemaah/data', [JemaahRecapController::class, 'data'])->name('admin.jemaah-recap.data');
+    Route::get('/admin/rekapitulasi-jemaah/export/excel', [JemaahRecapController::class, 'exportExcel'])->name('admin.jemaah-recap.excel');
+    Route::get('/admin/rekapitulasi-jemaah/export/pdf', [JemaahRecapController::class, 'exportPdf'])->name('admin.jemaah-recap.pdf');
 
     // keberangkatan jemaah
 

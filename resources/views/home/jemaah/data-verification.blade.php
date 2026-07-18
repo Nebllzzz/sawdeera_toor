@@ -4,10 +4,14 @@
     <div class="content-wrapper">
         <section class="content">
             <div class="container-fluid">
-                <h2 class="font-weight-bold mb-1">Verifikasi Data Jemaah</h2>
-                <small class="text-muted">Dashboard &nbsp;›&nbsp; Verifikasi Data Jemaah</small>
+                <x-page-heading
+                    title="Verifikasi Data Jemaah"
+                    description="Periksa kelengkapan data pribadi jemaah sebelum memberikan persetujuan."
+                    section="Verifikasi Jemaah"
+                    current="Data Jemaah"
+                />
 
-                <div class="row mt-4">
+                <div class="row">
                     <div class="col-md-4 mb-3">
                         <div class="verify-stat"><span class="orange"><i class="far fa-clock"></i></span>
                             <div><b>{{ $stats['menunggu'] }}</b>

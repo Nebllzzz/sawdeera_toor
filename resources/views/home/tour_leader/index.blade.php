@@ -9,14 +9,20 @@
 
             <div class="container-fluid">
 
+                <x-page-heading
+                    title="Data Tour Leader"
+                    description="Kelola data pembimbing yang bertugas pada perjalanan umrah."
+                    section="Master Data"
+                    current="Tour Leader"
+                />
+
                 <div class="card mt-3">
 
                     <div class="card-header d-flex justify-content-between align-items-center">
 
                         <h3>Data Tour Leader</h3>
 
-                        <button class="btn btn-sawdeera1" data-toggle="modal" data-target="#modalLeader"
-                            onclick="createLeader()">
+                        <button type="button" class="btn btn-sawdeera1" id="btnAddLeader">
 
                             <i class="fas fa-plus mr-2 text-white"></i>
 
@@ -73,7 +79,7 @@
 
                     <div class="modal-header">
                         <h4 id="modalTitle">Tambah Tour Leader</h4>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
                     <div class="modal-body">
@@ -197,7 +203,11 @@
 
                 $("#formLeader")[0].reset();
 
+                showAppModal("modalLeader");
+
             }
+
+            $("#btnAddLeader").on("click", createLeader);
 
 
             $(document).on("click", ".editLeader", function() {
@@ -214,7 +224,7 @@
                 $("#alamat").val(btn.data("alamat"));
                 $("#jenis_kelamin").val(btn.data("jk"));
 
-                $("#modalLeader").modal("show");
+                showAppModal("modalLeader");
 
             });
 
@@ -227,7 +237,7 @@
 
                     Swal.fire("Success", res.message, "success");
 
-                    $("#modalLeader").modal("hide");
+                    hideAppModal("modalLeader");
 
                     $("#dt").DataTable().ajax.reload();
 

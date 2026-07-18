@@ -11,14 +11,11 @@ use App\Models\TourLeader;
 use App\Services\KeberangkatanStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Yajra\DataTables\DataTables;
 
 class KeberangkatanController extends Controller
 {
-    public function __construct(private KeberangkatanStatusService $statusService)
-    {
-    }
+    public function __construct(private KeberangkatanStatusService $statusService) {}
 
     public function index()
     {
@@ -89,14 +86,14 @@ class KeberangkatanController extends Controller
             ->addColumn('tanggal_pengajuan', fn ($row) => $row->created_at?->translatedFormat('d M Y H:i') ?? '-')
             ->addColumn('action', function ($row) {
                 $html = '<div class="jemaah-action-list">';
-                $html .= '<a href="/jemaah/detail/'.$row->jemaah_id.'" class="btn btn-sm btn-light-primary">Detail</a>';
+                $html .= '<a href="/jemaah/data-verifikasi/'.$row->jemaah->user_id.'" class="btn btn-sm btn-light-primary"><i class="far fa-eye mr-1"></i>Detail</a>';
 
-            $reschedule = $row->pendingReschedule ?: $row->reschedules->first();
-            if ($reschedule) {
-                $isPending = $reschedule->status === KeberangkatanJemaahReschedule::STATUS_MENUNGGU;
-                $html .= '<a href="'.action([self::class, 'reviewReschedule'], $reschedule->id).'" class="btn btn-sm '.($isPending ? 'btn-warning' : 'btn-outline-warning').'">';
-                $html .= '<i class="fas fa-random mr-1"></i>'.($isPending ? 'Review Reschedule' : 'Lihat Reschedule').'</a>';
-            }
+                $reschedule = $row->pendingReschedule ?: $row->reschedules->first();
+                if ($reschedule) {
+                    $isPending = $reschedule->status === KeberangkatanJemaahReschedule::STATUS_MENUNGGU;
+                    $html .= '<a href="'.action([self::class, 'reviewReschedule'], $reschedule->id).'" class="btn btn-sm '.($isPending ? 'btn-warning' : 'btn-outline-warning').'">';
+                    $html .= '<i class="fas fa-random mr-1"></i>'.($isPending ? 'Review Reschedule' : 'Lihat Reschedule').'</a>';
+                }
 
                 return $html.'</div>';
             })
@@ -198,7 +195,7 @@ class KeberangkatanController extends Controller
 
             $pengajuan = KeberangkatanJemaah::whereKey($reschedule->keberangkatan_jemaah_id)->lockForUpdate()->firstOrFail();
             $tujuan = Keberangkatan::whereKey($reschedule->keberangkatan_tujuan_id)->withCount('jemaah')->lockForUpdate()->firstOrFail();
-            abort_unless(!$tujuan->isFull(), 422, 'Kuota jadwal tujuan sudah penuh.');
+            abort_unless(! $tujuan->isFull(), 422, 'Kuota jadwal tujuan sudah penuh.');
 
             $pengajuan->update([
                 'keberangkatan_id' => $reschedule->keberangkatan_tujuan_id,

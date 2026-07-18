@@ -7,18 +7,18 @@
     <div class="content-wrapper">
         <section class="content">
             <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <small class="text-muted">Dashboard &nbsp;›&nbsp; Verifikasi Registrasi Akun &nbsp;›&nbsp; Detail
-                            Akun</small>
-                        <h2 class="font-weight-bold mt-2 mb-1">Detail Registrasi Akun</h2>
-                        <p class="text-muted mb-0">Periksa data registrasi akun calon jemaah sebelum melakukan verifikasi.
-                        </p>
-                    </div>
-                    <div class="status-card"><small>Status Akun</small>
-                        <h5>{{ $labels[$user->status] ?? ucfirst($user->status) }}</h5>
-                    </div>
-                </div>
+                <x-page-heading
+                    title="Detail Registrasi Akun"
+                    description="Periksa data registrasi akun calon jemaah sebelum melakukan verifikasi."
+                    section="Verifikasi Registrasi Akun"
+                    current="Detail Akun"
+                >
+                    <x-slot:actions>
+                        <div class="status-card"><small>Status Akun</small>
+                            <h5>{{ $labels[$user->status] ?? ucfirst($user->status) }}</h5>
+                        </div>
+                    </x-slot:actions>
+                </x-page-heading>
 
                 <div class="row">
                     <div class="col-lg-7 mb-4">

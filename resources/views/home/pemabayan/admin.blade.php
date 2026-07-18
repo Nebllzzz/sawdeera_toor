@@ -4,10 +4,12 @@
     <div class="content-wrapper px-3">
         <section class="content py-4">
             <div class="container-fluid">
-                <div class="mb-4">
-                    <h2 class="font-weight-bold">Verifikasi Pembayaran</h2>
-                    <p class="text-muted">Pantau rencana pembayaran dan verifikasi setiap bukti per tahap.</p>
-                </div>
+                <x-page-heading
+                    title="Verifikasi Pembayaran"
+                    description="Pantau rencana pembayaran dan verifikasi setiap bukti per tahap."
+                    section="Verifikasi Jemaah"
+                    current="Pembayaran"
+                />
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="table-responsive">
