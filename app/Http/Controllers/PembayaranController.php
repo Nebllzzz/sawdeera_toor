@@ -83,7 +83,8 @@ class PembayaranController extends Controller
         $query = Pembayaran::with(['jemaah.user', 'pengajuan.paketUmrah', 'tahapan'])
             ->whereNotNull('keberangkatan_jemaah_id')
             ->when($user->role === 'operator', fn ($q) => $q->whereHas('jemaah', fn ($q) => $q->where('operator_id', $user->id)))
-            ->select('pembayaran.*');
+            ->select('pembayaran.*')
+            ->orderBy('created_at', 'desc');
 
         return DataTables::of($query)
             ->addIndexColumn()

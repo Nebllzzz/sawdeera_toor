@@ -19,7 +19,7 @@ class MaskapaiController extends Controller
 
         if($request->ajax()){
 
-            $query = Maskapai::query();
+            $query = Maskapai::query()->orderby('created_at', 'desc');
 
             return DataTables::of($query)
 

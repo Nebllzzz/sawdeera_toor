@@ -119,7 +119,8 @@ class DokumenJemaahController extends Controller
         abort_unless(in_array(auth()->user()->role, ['admin', 'operator']), 403);
         $user = auth()->user();
         $query = DataJemaah::with(['user', 'dokumen'])
-            ->when($user->role === 'operator', fn ($q) => $q->where('operator_id', $user->id));
+            ->when($user->role === 'operator', fn ($q) => $q->where('operator_id', $user->id))
+            ->orderBy('created_at', 'desc');
 
         return DataTables::of($query)
             ->addIndexColumn()

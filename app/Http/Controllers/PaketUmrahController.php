@@ -30,7 +30,7 @@ class PaketUmrahController extends Controller
             $query = PaketUmrah::with([
                 'hotelMakkah',
                 'hotelMadinah'
-            ]);
+            ])->orderBy('created_at', 'desc');
 
             return DataTables::of($query)
 

@@ -19,7 +19,7 @@ class TourLeaderController extends Controller
 
         if($request->ajax()){
 
-            $query = TourLeader::query();
+            $query = TourLeader::query()->orderby('created_at', 'desc');
 
             return DataTables::of($query)
 

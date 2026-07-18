@@ -38,8 +38,8 @@
                                 </select></div>
                             <div class="col-md-3 mb-2"><input type="text" id="filterPeriod" class="form-control"
                                     placeholder="Tanggal Berangkat"></div>
-                            <div class="col-md-3 mb-2"><button id="btnReset" class="btn btn-light btn-block"><i
-                                        class="fas fa-redo mr-1"></i>Reset Filter</button></div>
+                            <div class="col-md-3 mb-2"><button id="btnReset" class="btn btn-sawdeera1 btn-block w-100"><i
+                                        class="fas fa-redo mx-2"></i>Reset Filter</button></div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="reportTable">
@@ -203,6 +203,120 @@
             cursor: not-allowed
         }
 
+        /* =========================
+        MONITORING TABLE
+        ========================= */
+        #reportTable {
+            width: 100% !important;
+            margin-bottom: 0 !important;
+            border: 1px solid #E8DED5;
+            border-collapse: separate !important;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #reportTable thead {
+            background-color: #FBF6F1;
+        }
+
+        #reportTable thead th {
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1F2937;
+            white-space: nowrap;
+            vertical-align: middle;
+            border-top: 0 !important;
+            border-bottom: 1px solid #E8DED5 !important;
+        }
+
+        #reportTable tbody td {
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #1F2937;
+            vertical-align: middle;
+            border-top: 0 !important;
+            border-bottom: 1px solid #E8DED5 !important;
+        }
+
+        #reportTable tbody tr:last-child td {
+            border-bottom: 0 !important;
+        }
+
+        #reportTable tbody tr:hover {
+            background-color: #FFFCF9;
+        }
+
+        /* Hilangkan garis bawaan DataTables yang bertumpuk */
+        table.dataTable#reportTable {
+            border-bottom: 1px solid #E8DED5 !important;
+        }
+
+        table.dataTable#reportTable.no-footer {
+            border-bottom: 1px solid #E8DED5 !important;
+        }
+
+        /* Jarak antara tabel dan info/pagination */
+        #reportTable_wrapper .dataTables_info {
+            padding-top: 18px;
+            font-size: 13px;
+            color: #667085;
+        }
+
+        #reportTable_wrapper .dataTables_paginate {
+            padding-top: 12px;
+        }
+
+        /* Pagination */
+        #reportTable_wrapper .dataTables_paginate .paginate_button {
+            min-width: 36px;
+            height: 36px;
+            margin-left: 4px;
+            padding: 7px 11px !important;
+            border: 0 !important;
+            border-radius: 8px !important;
+            background: transparent !important;
+            color: #667085 !important;
+            box-shadow: none !important;
+        }
+
+        #reportTable_wrapper .dataTables_paginate .paginate_button.current,
+        #reportTable_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #E39A1B !important;
+            color: #fff !important;
+        }
+
+        #reportTable_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #FBF6F1 !important;
+            color: #9A640D !important;
+        }
+
+        /* Hilangkan search dan dropdown bawaan DataTables
+        karena sudah memakai filter custom */
+        #reportTable_wrapper .dataTables_filter,
+        #reportTable_wrapper .dataTables_length {
+            display: none;
+        }
+
+        @media (max-width: 767.98px) {
+            #reportTable thead th,
+            #reportTable tbody td {
+                padding: 12px;
+                font-size: 12px;
+            }
+
+            #reportTable_wrapper .dataTables_info,
+            #reportTable_wrapper .dataTables_paginate {
+                float: none;
+                text-align: left;
+            }
+
+            #reportTable_wrapper .dataTables_paginate {
+                margin-top: 8px;
+            }
+        }
+
         @media(max-width:1000px) {
             .monitor-stats {
                 grid-template-columns: repeat(2, 1fr)
@@ -234,8 +348,20 @@
                 table.ajax.reload();
             });
             const table = $('#reportTable').DataTable({
+                dom: "<'row'" +
+                    "<'col-sm-6 d-flex align-items-center justify-content-start'l>" +
+                    "<'col-sm-6 mb-3 d-flex align-items-center justify-content-end'f>" +
+                    ">" +
+
+                    "<'table-responsive'tr>" +
+
+                    "<'row'" +
+                    "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
+                    "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
+                    ">",
+
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: {
                     url: '/laporan/jemaah/data',
                     type: 'POST',

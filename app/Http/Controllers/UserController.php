@@ -24,7 +24,8 @@ public function data(Request $request)
         $query = User::query()
             ->where('id','!=',1)
             ->where('id','!=',$auth)
-            ->where('role', 'operator');
+            ->where('role', 'operator')
+            ->orderby('created_at', 'desc');
 
         return DataTables::of($query)
 

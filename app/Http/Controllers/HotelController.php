@@ -18,7 +18,7 @@ public function data(Request $request)
 {
     if($request->ajax()){
 
-        $query = Hotel::query();
+        $query = Hotel::query()->orderby('created_at', 'desc');
 
         return DataTables::of($query)
 

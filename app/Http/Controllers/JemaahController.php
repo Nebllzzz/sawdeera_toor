@@ -39,7 +39,8 @@ class JemaahController extends Controller
         abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
         $query = User::with('jemaah')
             ->where('role', 'jemaah')
-            ->select('users.*');
+            ->select('users.*')
+            ->orderBy('users.created_at', 'desc');
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -110,7 +111,8 @@ class JemaahController extends Controller
                 'users.id', 'users.name', 'users.email', 'users.status',
                 'data_jemaah.nik', 'data_jemaah.no_telepon', 'data_jemaah.status_data',
                 'data_jemaah.operator_id', 'operator.name as operator_name',
-            ]);
+            ])
+            ->orderBy('users.created_at', 'desc');
 
         return DataTables::of($query)
             ->addIndexColumn()

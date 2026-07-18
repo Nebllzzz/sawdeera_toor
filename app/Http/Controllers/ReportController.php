@@ -32,7 +32,7 @@ class ReportController extends Controller
 
     public function data(Request $request)
     {
-        $q = KeberangkatanJemaah::with(['jemaah.user', 'paketUmrah', 'keberangkatan.maskapaiBerangkat', 'pembayaran.tahapan']);
+        $q = KeberangkatanJemaah::with(['jemaah.user', 'paketUmrah', 'keberangkatan.maskapaiBerangkat', 'pembayaran.tahapan'])->orderBy('created_at', 'desc');
 
         if ($request->filled('program') && $request->program !== 'all') {
             $q->where('paket_umrah_id', $request->program);
