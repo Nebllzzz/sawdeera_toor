@@ -8,7 +8,7 @@
             'rejected' => 'fa-exclamation',
             'waiting' => 'fa-ellipsis-h',
         ];
-        $applicationLabels = ['pendaftaran' => 'Pendaftaran', 'setuju' => 'Setuju', 'reschedule' => 'Penjadwalan Ulang'];
+        $applicationLabels = ['pendaftaran' => 'Pendaftaran', 'setuju' => 'Jadwal Berlaku', 'reschedule' => 'Penjadwalan Ulang'];
         $applicationStatus = $pengajuan?->status;
         $bottomLabel = $applicationStatus
             ? $applicationLabels[$applicationStatus] ?? ucwords(str_replace('_', ' ', $applicationStatus))
@@ -121,7 +121,7 @@
                             @include('home.status-verifikasi.partials.row', [
                                 'number' => 4,
                                 'title' => 'Upload Dokumen Pendukung',
-                                'subtitle' => (($jemaah->status_pernikahan ?? null) === 'menikah' ? 'Tujuh' : 'Enam') . ' dokumen persyaratan keberangkatan.',
+                                'subtitle' => (($jemaah->status_pernikahan ?? null) === 'menikah' ? 'Enam' : 'Lima') . ' dokumen persyaratan keberangkatan.',
                                 'step' => $steps['documents'],
                                 'icon' => 'fa-file-alt',
                                 'url' => '/dokumen',

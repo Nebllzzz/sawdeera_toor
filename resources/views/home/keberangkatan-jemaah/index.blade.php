@@ -54,8 +54,8 @@
                                 </div>
                                 <div><small>Total Paket</small><b>Rp {{ number_format($p->harga, 0, ',', '.') }}</b></div>
                             </div>
-                            <a href="/pemabayan" class="btn-gold d-inline-block mt-4">Lihat Rencana Pembayaran <i
-                                    class="fas fa-arrow-right ml-2"></i></a>
+                            <a href="{{ route('jemaah.itinerary') }}" class="btn-gold d-inline-block mt-4">Unduh Itinerary <i
+                                    class="fas fa-file-pdf ml-2"></i></a>
                         </div>
                     </div>
                     <div class="selected-detail-grid">
@@ -82,10 +82,10 @@
                         $publicApprovalLabel = in_array($internalStatus, ['pengajuan', 'direvisi'], true)
                             ? 'Dalam Pengajuan'
                             : ($pengajuan->status === 'setuju'
-                                ? 'Jadwal Disetujui Jemaah'
+                                ? 'Jadwal Berlaku'
                                 : ($pengajuan->status === 'reschedule'
                                     ? 'Pengajuan Perubahan'
-                                    : 'Menunggu Persetujuan Jemaah'));
+                                    : 'Jadwal Berlaku'));
                         $departureLabels = [
                             'draft' => 'Draft',
                             'aktif' => 'Jadwal Aktif',
@@ -111,7 +111,7 @@
                                         {{ $pengajuan->pendingReschedule->keberangkatanTujuan?->kode_keberangkatan }}
                                         sedang menunggu review admin.</p>
                                 @else
-                                    <p class="mb-0 text-muted">Status persetujuan jadwal dari sisi jemaah.</p>
+                                    <p class="mb-0 text-muted">Jadwal ini otomatis berlaku setelah pengajuan paket berhasil.</p>
                                 @endif
                             </div>
                             <div class="col-md-6">
@@ -122,34 +122,25 @@
                             </div>
                         </div>
 
-                        @if ($pengajuan->status !== 'reschedule' && in_array($internalStatus, ['aktif', 'disetujui', 'berangkat'], true))
+                        @if (in_array($internalStatus, ['aktif', 'disetujui', 'berangkat'], true))
                             <hr>
-                            <h5 class="mb-2">Apakah Anda menyetujui jadwal keberangkatan ini?</h5>
-                            <div class="approval-options">
-                                <div><i class="fas fa-check-circle text-success mr-2"></i>Ya, saya setuju dengan jadwal ini
-                                    dan siap berangkat</div>
-                                <div><i class="fas fa-times-circle text-danger mr-2"></i>Tidak, saya ingin mengajukan
-                                    perubahan</div>
-                            </div>
                             <div class="d-flex flex-wrap gap-2 mt-3">
-                                @if ($pengajuan->status !== 'setuju')
-                                    <button class="btn btn-success mr-2 mb-2" id="btnApproveSchedule"><i
-                                            class="fas fa-check mr-2"></i>Setuju</button>
-                                @endif
                                 @if ($canRequestChange)
                                     <button class="btn btn-warning mb-2" id="btnOpenReschedule"><i
-                                            class="fas fa-exchange-alt mr-2"></i>Ajukan Perubahan</button>
+                                            class="fas fa-exchange-alt mr-2"></i>Reschedule</button>
                                 @else
-                                    <span class="text-muted align-self-center">Batas pengajuan perubahan minimal H-45
-                                        sebelum keberangkatan.</span>
+                                    <button class="btn btn-warning mb-2" disabled><i class="fas fa-exchange-alt mr-2"></i>Reschedule</button>
                                 @endif
                             </div>
-                            <div class="reschedule-note mt-3">
-                                <b>Notes:</b><br>
-                                Harap hadir minimal 3 jam sebelum keberangkatan.<br>
-                                Jika ada perubahan, segera ajukan form perubahan minimal H-45 sebelum keberangkatan.
-                            </div>
                         @endif
+                    </div>
+                    <div class="notes-card mt-4">
+                        <h5><i class="fas fa-sticky-note mr-2"></i>Notes</h5>
+                        <ul class="mb-0">
+                            <li>Batas pengajuan perubahan minimal H-45 sebelum berangkat.</li>
+                            <li>Harap hadir di titik keberangkatan minimal 3 jam sebelum jadwal.</li>
+                            <li>Pastikan identitas, dokumen perjalanan, dan pembayaran telah terverifikasi sebelum keberangkatan.</li>
+                        </ul>
                     </div>
                 @elseif ($isPackagePage)
                     <form class="filter-card mb-4" method="GET">
@@ -351,11 +342,6 @@
                             <label>Alasan Pengajuan</label>
                             <textarea name="alasan_pengajuan" class="form-control" rows="3"
                                 placeholder="Tuliskan alasan perubahan bila ada"></textarea>
-                        </div>
-                        <div class="reschedule-note">
-                            <b>Notes:</b><br>
-                            Harap hadir minimal 3 jam sebelum keberangkatan.<br>
-                            Jika ada perubahan, segera ajukan form perubahan minimal H-45 sebelum keberangkatan.
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -740,12 +726,21 @@
             color: #303030
         }
 
-        .reschedule-note {
+        .notes-card {
             background: #fff8e9;
             border: 1px solid #f0d9aa;
             border-radius: 10px;
-            padding: 12px 14px;
+            padding: 18px 20px;
             color: #493417
+        }
+
+        .notes-card h5 {
+            font-weight: 800;
+            margin-bottom: 10px
+        }
+
+        .notes-card ul {
+            padding-left: 20px
         }
 
         .reschedule-option {
@@ -994,23 +989,6 @@
                     'success').then(() => location.href = r.redirect)).fail(x => Swal.fire('Pengajuan gagal', x
                     .responseJSON?.message || 'Periksa kembali pilihan Anda.', 'error')).always(() => btn.prop(
                     'disabled', false).text('Ajukan & Buat Rencana Pembayaran'));
-            });
-
-            $('#btnApproveSchedule').click(function() {
-                Swal.fire({
-                    title: 'Setujui jadwal ini?',
-                    text: 'Pastikan jadwal keberangkatan sudah sesuai.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Setuju'
-                }).then(result => {
-                    if (!result.isConfirmed) return;
-                    $.post('/keberangkatan-jemaah/approve-schedule', {
-                            _token: $('meta[name="csrf-token"]').attr('content')
-                        }).done(r => Swal.fire('Berhasil', r.message, 'success').then(() => location.reload()))
-                        .fail(x => Swal.fire('Gagal', x.responseJSON?.message ||
-                            'Jadwal tidak dapat disetujui.', 'error'));
-                });
             });
 
             $('#btnOpenReschedule').click(function() {

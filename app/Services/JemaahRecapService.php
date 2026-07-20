@@ -400,10 +400,7 @@ class JemaahRecapService
             if (! isset($rows[$key])) {
                 continue;
             }
-            $requiredTypes = ['paspor', 'ktp', 'kartu_keluarga', 'visa', 'vaksin', 'foto_4x6'];
-            if ($item->jemaah?->status_pernikahan === 'menikah') {
-                $requiredTypes[] = 'buku_nikah';
-            }
+            $requiredTypes = $item->jemaah?->requiredDocumentTypes() ?? \App\Models\DataJemaah::BASE_REQUIRED_DOCUMENTS;
             $documents = $item->jemaah?->dokumen?->whereIn('jenis_dokumen', $requiredTypes) ?? collect();
             $required = count($requiredTypes);
             $uploaded = $documents->whereIn('status', ['diproses', 'diverifikasi', 'ditolak'])->count();
@@ -425,7 +422,7 @@ class JemaahRecapService
         $totals['completion_rate'] = $this->percentage($totals['verified'], $totals['required']);
 
         return [
-            'note' => 'Periode dihitung dari tanggal pemilihan paket. Kebutuhan dokumen adalah 6 dokumen, ditambah buku nikah untuk jemaah menikah.',
+            'note' => 'Periode dihitung dari tanggal pemilihan paket. Kebutuhan dokumen adalah 5 dokumen, ditambah buku nikah untuk jemaah menikah.',
             'columns' => $this->columns([
                 ['key' => 'required', 'label' => 'Dokumen Wajib'],
                 ['key' => 'uploaded', 'label' => 'Sudah Diunggah'],

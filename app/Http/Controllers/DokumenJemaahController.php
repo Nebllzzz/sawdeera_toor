@@ -16,7 +16,6 @@ use Yajra\DataTables\DataTables;
 class DokumenJemaahController extends Controller
 {
     public const DOCUMENTS = [
-        'paspor' => ['label' => 'Paspor', 'icon' => 'fa-passport', 'color' => 'blue'],
         'ktp' => ['label' => 'KTP', 'icon' => 'fa-id-card', 'color' => 'green'],
         'kartu_keluarga' => ['label' => 'Kartu Keluarga', 'icon' => 'fa-users', 'color' => 'purple'],
         'buku_nikah' => ['label' => 'Buku Nikah', 'icon' => 'fa-book', 'color' => 'brown'],
@@ -111,6 +110,7 @@ class DokumenJemaahController extends Controller
     public function index()
     {
         abort_unless(in_array(auth()->user()->role, ['admin', 'operator']), 403);
+
         return view('home.dokumen.admin');
     }
 
@@ -211,9 +211,10 @@ class DokumenJemaahController extends Controller
         if ($verified->count() === count($required)) {
             return ['status' => 'diverifikasi', 'label' => 'Terverifikasi', 'text' => 'Seluruh dokumen telah diverifikasi.', 'latest' => null];
         }
-        if ($processing->isNotEmpty()) {
-            return ['status' => 'diproses', 'label' => 'Dalam Proses', 'text' => 'Dokumen Anda sedang diperiksa admin.', 'latest' => null];
+        if ($processing->isNotEmpty() || $verified->isNotEmpty()) {
+            return ['status' => 'diproses', 'label' => 'Menunggu Verifikasi', 'text' => $verified->count().' dari '.count($required).' dokumen telah diverifikasi. Status selesai setelah seluruh dokumen terverifikasi.', 'latest' => null];
         }
+
         return ['status' => 'belum_lengkap', 'label' => 'Belum Lengkap', 'text' => 'Lengkapi seluruh dokumen pendukung.', 'latest' => null];
     }
 
@@ -255,7 +256,7 @@ class DokumenJemaahController extends Controller
         }
 
         if ($docs->whereIn('status', ['diproses', 'diverifikasi'])->isNotEmpty()) {
-            return '<span class="badge badge-warning">Sudah Upload</span>';
+            return '<span class="badge badge-warning">Menunggu Verifikasi</span>';
         }
 
         return '<span class="badge badge-secondary">Belum Upload</span>';

@@ -1,22 +1,22 @@
 <?php
 
-use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumenJemaahController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\JemaahController;
+use App\Http\Controllers\JemaahRecapController;
 use App\Http\Controllers\KeberangkatanController;
 use App\Http\Controllers\KeberangkatanJemaahController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaskapaiController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PaketUmrahController;
-use App\Http\Controllers\TourLeaderController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\JemaahRecapController;
 use App\Http\Controllers\StatusVerificationController;
+use App\Http\Controllers\TourLeaderController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     // logout
     Route::post('/logout', function () {
         Auth::logout();
+
         return redirect('/login');
     })->name('logout');
 
@@ -140,6 +141,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', [JemaahController::class, 'store']);
         Route::post('/update/{id}', [JemaahController::class, 'update']);
         Route::delete('/delete/{id}', [JemaahController::class, 'destroy']);
+        Route::post('/reset-password/{id}', [JemaahController::class, 'resetPassword']);
 
         Route::post('/toggle/{id}', [JemaahController::class, 'toggleStatus']);
         Route::post('/toggle-data/{id}', [JemaahController::class, 'toggleDataStatus']);
@@ -161,7 +163,6 @@ Route::middleware('auth')->group(function () {
 
     // verifikasi dokumen
     Route::prefix('admin')->group(function () {
-
 
         Route::get('/dokumen', [DokumenJemaahController::class, 'index']);
         Route::post('/dokumen/data', [DokumenJemaahController::class, 'data']);
@@ -198,6 +199,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/paket-umrah-jemaah/jadwal-paket/{paket}/{durasi}', [KeberangkatanJemaahController::class, 'jadwalByPaket']);
     Route::get('/paket-umrah-jemaah/paket/{id}', [KeberangkatanJemaahController::class, 'paketDetail']);
     Route::get('/keberangkatan-jemaah', [KeberangkatanJemaahController::class, 'index']);
+    Route::get('/keberangkatan-jemaah/itinerary', [KeberangkatanJemaahController::class, 'downloadItinerary'])->name('jemaah.itinerary');
     Route::post('/keberangkatan-jemaah/store', [KeberangkatanJemaahController::class, 'store']);
     Route::post('/keberangkatan-jemaah/approve-schedule', [KeberangkatanJemaahController::class, 'approveSchedule']);
     Route::get('/keberangkatan-jemaah/reschedule-options', [KeberangkatanJemaahController::class, 'rescheduleOptions']);

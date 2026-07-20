@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\DataTables;
 
@@ -48,7 +49,16 @@ class JemaahController extends Controller
             ->addColumn('telepon', fn ($row) => e($row->jemaah?->no_telepon ?? '-'))
             ->addColumn('tanggal_registrasi', fn ($row) => $row->created_at?->translatedFormat('d M Y H:i') ?? '-')
             ->addColumn('status_badge', fn ($row) => $this->accountStatusBadge($row->status))
-            ->addColumn('action', fn ($row) => '<a href="/jemaah/registrasi/'.$row->id.'" class="btn btn-sm btn-light-primary"><i class="far fa-eye mr-1"></i> Lihat Detail</a>')
+            ->addColumn('action', function ($row) {
+                $actions = '<div class="d-flex flex-wrap" style="gap:6px">';
+                $actions .= '<a href="/jemaah/registrasi/'.$row->id.'" class="btn btn-sm btn-light-primary"><i class="far fa-eye mr-1"></i> Detail</a>';
+                $actions .= '<button type="button" class="btn btn-sm btn-warning reset-password" data-id="'.$row->id.'"><i class="fas fa-key mr-1"></i> Reset Password</button>';
+                if ($row->status === 'tidak_aktif') {
+                    $actions .= '<button type="button" class="btn btn-sm btn-danger delete-account" data-id="'.$row->id.'"><i class="fas fa-trash mr-1"></i> Delete</button>';
+                }
+
+                return $actions.'</div>';
+            })
             ->rawColumns(['nama', 'status_badge', 'action'])
             ->make(true);
     }
@@ -72,9 +82,9 @@ class JemaahController extends Controller
     {
         abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
         $stats = [
-            'menunggu' => DataJemaah::where('status_data', 'menunggu_verifikasi')->count(),
-            'terverifikasi' => DataJemaah::where('status_data', 'terverifikasi')->count(),
-            'perlu_perbaikan' => DataJemaah::where('status_data', 'perlu_perbaikan')->count(),
+            'menunggu' => DataJemaah::whereHas('user', fn ($q) => $q->where('status', 'aktif'))->where('status_data', 'menunggu_verifikasi')->count(),
+            'terverifikasi' => DataJemaah::whereHas('user', fn ($q) => $q->where('status', 'aktif'))->where('status_data', 'terverifikasi')->count(),
+            'perlu_perbaikan' => DataJemaah::whereHas('user', fn ($q) => $q->where('status', 'aktif'))->where('status_data', 'perlu_perbaikan')->count(),
         ];
 
         return view('home.jemaah.data-verification', compact('stats'));
@@ -103,12 +113,13 @@ class JemaahController extends Controller
             ->leftJoin('data_jemaah', 'users.id', '=', 'data_jemaah.user_id')
             ->leftJoin('users as operator', 'data_jemaah.operator_id', '=', 'operator.id')
             ->where('users.role', 'jemaah')
+            ->where('users.status', 'aktif')
             ->when($user->role !== 'admin', fn ($q) => $q->where(
                 fn ($q) => $q->where('data_jemaah.operator_id', $user->id)
                     ->orWhereNull('data_jemaah.operator_id')
             ))
             ->select([
-                'users.id', 'users.name', 'users.email', 'users.status',
+                'users.id', 'users.name', 'users.email',
                 'data_jemaah.nik', 'data_jemaah.no_telepon', 'data_jemaah.status_data',
                 'data_jemaah.operator_id', 'operator.name as operator_name',
             ])
@@ -120,11 +131,10 @@ class JemaahController extends Controller
             ->addColumn('email', fn ($r) => e($r->email ?: '-'))
             ->addColumn('nik', fn ($r) => e($r->nik ?: '-'))
             ->addColumn('telepon', fn ($r) => e($r->no_telepon ?: '-'))
-            ->addColumn('statusActivity', fn ($r) => $this->accountStatusBadge($r->status))
             ->addColumn('statusData', fn ($r) => $this->dataStatusBadge($r->status_data))
             ->addColumn('operator', fn ($r) => e($r->operator_name ?: 'Belum ditangani'))
             ->addColumn('action', fn ($row) => view('home.jemaah.partials.actions', ['row' => $row])->render())
-            ->rawColumns(['statusActivity', 'statusData', 'action'])
+            ->rawColumns(['statusData', 'action'])
             ->make(true);
     }
 
@@ -172,15 +182,37 @@ class JemaahController extends Controller
 
     public function destroy($id)
     {
-        User::where('role', 'jemaah')->findOrFail($id)->delete();
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $user = User::where('role', 'jemaah')->findOrFail($id);
+        abort_unless($user->status === 'tidak_aktif', 422, 'Hanya akun tidak aktif yang dapat dihapus.');
+        $user->delete();
+
         return response()->json(['message' => 'Data jemaah berhasil dihapus.']);
     }
 
-    public function toggleStatus($id)
+    public function resetPassword($id)
     {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
+        $user = User::where('role', 'jemaah')->findOrFail($id);
+
+        $temporaryPassword = Str::password(12, symbols: false);
+        $user->update(['password' => Hash::make($temporaryPassword)]);
+
+        return response()->json([
+            'message' => 'Password berhasil direset.',
+            'temporary_password' => $temporaryPassword,
+        ]);
+    }
+
+    public function toggleStatus(Request $request, $id)
+    {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
         $user = User::with('jemaah')->where('role', 'jemaah')->findOrFail($id);
+        $data = $request->validate([
+            'status' => ['nullable', Rule::in(['aktif', 'tidak_aktif'])],
+        ]);
         $before = $user->status;
-        $user->status = $user->status === 'aktif' ? 'tidak_aktif' : 'aktif';
+        $user->status = $data['status'] ?? ($user->status === 'aktif' ? 'tidak_aktif' : 'aktif');
         $user->save();
         $user->jemaah?->update(['operator_id' => auth()->id()]);
         $this->writeVerificationLog($user, JemaahVerificationLog::TYPE_ACCOUNT, $before, $user->status, $user->status === 'aktif' ? 'Akun jemaah diaktifkan.' : 'Akun jemaah dinonaktifkan.');
@@ -190,6 +222,7 @@ class JemaahController extends Controller
 
     public function toggleDataStatus(Request $request, $id)
     {
+        abort_unless(in_array(auth()->user()->role, ['admin', 'operator'], true), 403);
         $data = $request->validate([
             'status_data' => ['required', Rule::in(['menunggu_verifikasi', 'terverifikasi', 'perlu_perbaikan'])],
             'catatan_admin' => 'nullable|string|max:2000|required_if:status_data,perlu_perbaikan',
@@ -198,6 +231,12 @@ class JemaahController extends Controller
         $jemaah = $user->jemaah()
             ->updateOrCreate(['user_id' => $id]);
         $before = $jemaah->status_data;
+        abort_if($before === 'terverifikasi', 422, 'Data yang sudah terverifikasi tidak dapat diubah lagi.');
+        abort_if(
+            $before === 'perlu_perbaikan' && $data['status_data'] === 'perlu_perbaikan',
+            422,
+            'Permintaan revisi sudah pernah dikirim. Tunggu jemaah memperbarui data.'
+        );
         $jemaah->update([
             ...$data,
             'operator_id' => auth()->id(),
@@ -251,7 +290,7 @@ class JemaahController extends Controller
 
         DB::transaction(function () use ($request, $data, $user) {
             $user->update(['name' => $data['name']]);
-            if (!empty($data['password'])) {
+            if (! empty($data['password'])) {
                 $user->update(['password' => Hash::make($data['password'])]);
             }
             if ($user->role === 'jemaah') {
@@ -329,7 +368,7 @@ class JemaahController extends Controller
             ]));
         }
 
-        return back()->with('berhasil', 'Pendaftaran berhasil disimpan dan diajukan untuk diverifikasi.');
+        return redirect('/dokumen')->with('berhasil', 'Data diri berhasil disimpan. Silakan unggah dokumen pendukung.');
     }
 
     private function hasDeparture(User $user): bool
@@ -396,6 +435,7 @@ class JemaahController extends Controller
             'tidak_aktif' => ['danger', 'Tidak Aktif'],
         ];
         [$color, $label] = $map[$status] ?? ['secondary', '-'];
+
         return "<span class=\"badge badge-{$color}\">{$label}</span>";
     }
 
@@ -408,6 +448,7 @@ class JemaahController extends Controller
             'perlu_perbaikan' => ['danger', 'Perlu Perbaikan'],
         ];
         [$color, $label] = $map[$status] ?? ['secondary', 'Belum Lengkap'];
+
         return "<span class=\"badge badge-{$color}\">{$label}</span>";
     }
 

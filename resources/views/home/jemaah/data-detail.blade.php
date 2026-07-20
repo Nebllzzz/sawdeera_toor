@@ -61,12 +61,22 @@
                                 <h3 class="mb-0">Aksi Verifikasi</h3>
                             </div>
                             <div class="card-body">
-                                <button class="btn btn-success btn-block mb-2 status-data w-100"
-                                    data-status="terverifikasi">Verifikasi Data
-                                </button>
-                                <button type="button" class="btn btn-danger btn-block w-100" id="btnRevisi">
-                                    Minta Revisi
-                                </button>
+                                @if($j->status_data === 'terverifikasi')
+                                    <div class="alert alert-success mb-0"><i class="fas fa-lock mr-2"></i>Data sudah terverifikasi dan seluruh aksi dikunci.</div>
+                                @else
+                                    <button class="btn btn-success btn-block mb-2 status-data w-100"
+                                        data-status="terverifikasi">Verifikasi Data
+                                    </button>
+                                    @if($j->status_data === 'perlu_perbaikan')
+                                        <button type="button" class="btn btn-danger btn-block w-100" disabled>
+                                            Revisi Sudah Diminta
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-danger btn-block w-100" id="btnRevisi">
+                                            Minta Revisi
+                                        </button>
+                                    @endif
+                                @endif
                             </div>
                         </div>
                         <div class="card">

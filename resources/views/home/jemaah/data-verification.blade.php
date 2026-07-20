@@ -46,7 +46,6 @@
                                         <th>Email</th>
                                         <th>NIK</th>
                                         <th>No HP</th>
-                                        <th>Status Akun</th>
                                         <th>Status Data</th>
                                         <th>Terakhir Ditangani</th>
                                         <th>Aksi</th>
@@ -318,8 +317,6 @@
                         data: 'telepon'
                     },
                     {
-                        data: 'statusActivity'
-                    }, {
                         data: 'statusData'
                     }, {
                         data: 'operator'

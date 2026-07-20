@@ -50,7 +50,7 @@ class KeberangkatanStatusService
     public function nextStatus(Keberangkatan $keberangkatan, string $action): string
     {
         $next = self::TRANSITIONS[$keberangkatan->status][$action] ?? null;
-        if (!$next) {
+        if (! $next) {
             throw ValidationException::withMessages([
                 'status' => 'Transisi status tidak valid untuk jadwal ini.',
             ]);
@@ -61,7 +61,7 @@ class KeberangkatanStatusService
 
     public function ensureAllowed(Keberangkatan $keberangkatan, User $user, string $action): string
     {
-        if (!in_array($user->role, self::ACTION_ROLES[$action] ?? [], true)) {
+        if (! in_array($user->role, self::ACTION_ROLES[$action] ?? [], true)) {
             abort(403, 'Anda tidak memiliki akses untuk aksi ini.');
         }
 
@@ -76,6 +76,15 @@ class KeberangkatanStatusService
             throw ValidationException::withMessages([
                 'alasan_revisi' => 'Alasan revisi wajib diisi.',
             ]);
+        }
+
+        if ($action === 'submit') {
+            $readyCount = $keberangkatan->jemaah()->readyForApproval()->count();
+            if ($readyCount < (int) $keberangkatan->kuota) {
+                throw ValidationException::withMessages([
+                    'kuota' => "Jadwal baru dapat diajukan setelah seluruh kuota terisi jemaah yang sudah lolos verifikasi ({$readyCount}/{$keberangkatan->kuota}).",
+                ]);
+            }
         }
 
         $keberangkatan->status = $next;
@@ -104,7 +113,7 @@ class KeberangkatanStatusService
     {
         return [
             'activate' => 'Aktifkan Jadwal',
-            'submit' => 'Ajukan Jadwal',
+            'submit' => 'Ajukan Keberangkatan ke Pimpinan',
             'approve' => 'Setujui Jadwal',
             'revise' => 'Minta Revisi',
             'depart' => 'Tandai Berangkat',

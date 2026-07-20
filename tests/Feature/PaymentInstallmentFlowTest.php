@@ -65,7 +65,7 @@ class PaymentInstallmentFlowTest extends TestCase
             'keberangkatan_id' => $jadwal,
             'jenis_pembayaran' => 'cicilan_3_bulan',
             'dp_persen' => 30,
-        ])->assertSuccessful()->assertJsonPath('redirect', '/pemabayan');
+        ])->assertSuccessful()->assertJsonPath('redirect', '/pendaftaran-saya');
 
         $payment = Pembayaran::with('tahapan')->firstOrFail();
         $this->assertCount(3, $payment->tahapan);

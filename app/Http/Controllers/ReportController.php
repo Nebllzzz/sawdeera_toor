@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\DataJemaah;
+use App\Models\DokumenJemaah;
 use App\Models\KeberangkatanJemaah;
 use App\Models\PaketUmrah;
-use App\Models\DokumenJemaah;
-use App\Models\Pembayaran;
-use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Yajra\DataTables\DataTables;
 
 class ReportController extends Controller
 {
@@ -24,9 +24,10 @@ class ReportController extends Controller
             'siap' => (clone $base)->where('status', 'setuju')->count(),
             'kelengkapan' => (clone $base)->where('status', 'pendaftaran')->count(),
             'verifikasi' => DokumenJemaah::where('status', 'diproses')->distinct('jemaah_id')->count('jemaah_id'),
-            'berangkat' => (clone $base)->whereHas('keberangkatan', fn($q) => $q->whereIn('status', ['berangkat', 'berlangsung', 'pulang']))->count(),
-            'selesai' => (clone $base)->whereHas('keberangkatan', fn($q) => $q->where('status', 'selesai'))->count(),
+            'berangkat' => (clone $base)->whereHas('keberangkatan', fn ($q) => $q->whereIn('status', ['berangkat', 'berlangsung', 'pulang']))->count(),
+            'selesai' => (clone $base)->whereHas('keberangkatan', fn ($q) => $q->where('status', 'selesai'))->count(),
         ];
+
         return view('home.laporan-jemaah.laporan_jemaah', compact('paket', 'stats'));
     }
 
@@ -55,7 +56,6 @@ class ReportController extends Controller
                 $from = date('Y-m-d', strtotime($from));
                 $to = date('Y-m-d', strtotime($to));
 
-
                 // date range filter (UTC vs Asia/Jakarta)
                 // tanggal_keberangkatan adalah DATETIME (tersimpan UTC),
                 // sementara UI mengirim tanggal tanpa jam.
@@ -64,8 +64,8 @@ class ReportController extends Controller
                     $s->whereBetween(
                         'tanggal_keberangkatan',
                         [
-                            $from . ' 00:00:00',
-                            $to . ' 23:59:59'
+                            $from.' 00:00:00',
+                            $to.' 23:59:59',
                         ]
                     );
                 });
@@ -76,7 +76,6 @@ class ReportController extends Controller
         }
 
         return DataTables::of($q)
-
 
             ->addIndexColumn()
             ->addColumn('no_daftar', fn ($it) => $this->registrationNumber($it))
@@ -94,8 +93,13 @@ class ReportController extends Controller
                     ->orderByDesc('id')
                     ->first();
 
-                if ($p && $p->status == 'diverifikasi') return 'Lunas';
-                if ($p && $p->status == 'ditolak') return 'Ditolak';
+                if ($p && $p->status == 'diverifikasi') {
+                    return 'Lunas';
+                }
+                if ($p && $p->status == 'ditolak') {
+                    return 'Ditolak';
+                }
+
                 return 'Belum';
             })
             ->rawColumns(['nama', 'keberangkatan', 'progress', 'status_monitoring', 'action'])
@@ -143,14 +147,15 @@ class ReportController extends Controller
         $done += $item->jemaah?->user?->status === 'aktif' ? 1 : 0;
         $done += $item->paketUmrah ? 1 : 0;
         $done += $item->jemaah?->status_data === 'terverifikasi' ? 1 : 0;
-        $requiredDocumentCount = $item->jemaah?->status_pernikahan === 'menikah' ? 7 : 6;
-        $uploadedDocumentCount = $docs->whereIn('status', ['diproses', 'diverifikasi', 'ditolak'])->count();
-        $done += $uploadedDocumentCount >= $requiredDocumentCount ? 1 : 0;
-        $done += $payment && in_array($payment->status, ['diproses', 'diverifikasi'], true) ? 1 : 0;
-        $done += $payment?->status === 'diverifikasi' ? 1 : 0;
+        $requiredDocumentCount = count($item->jemaah?->requiredDocumentTypes() ?? DataJemaah::BASE_REQUIRED_DOCUMENTS);
+        $verifiedDocumentCount = $docs->where('status', 'diverifikasi')->count();
+        $done += $verifiedDocumentCount >= $requiredDocumentCount ? 1 : 0;
+        $done += $payment?->isFullyVerified() ? 1 : 0;
+        $done += $payment?->isFullyVerified() ? 1 : 0;
         $done += $item->keberangkatan ? 1 : 0;
-        $done += in_array($item->keberangkatan?->status, ['berangkat','berlangsung','pulang','selesai'], true) ? 1 : 0;
+        $done += in_array($item->keberangkatan?->status, ['berangkat', 'berlangsung', 'pulang', 'selesai'], true) ? 1 : 0;
         $done += $item->keberangkatan?->status === 'selesai' ? 1 : 0;
+
         return (int) round(($done / 10) * 100);
     }
 
@@ -158,17 +163,31 @@ class ReportController extends Controller
     {
         $value = $this->progressValue($item);
         $color = $value < 40 ? '#e74c3c' : ($value < 70 ? '#f39c12' : '#43a047');
+
         return "<b>{$value}%</b><div class=\"progress\" style=\"height:6px\"><div class=\"progress-bar\" style=\"width:{$value}%;background:{$color}\"></div></div>";
     }
 
     private function monitoringStatus(KeberangkatanJemaah $item): array
     {
-        if ($item->keberangkatan?->status === 'selesai') return ['Selesai Umrah', 'success'];
-        if (in_array($item->keberangkatan?->status, ['berangkat','berlangsung','pulang'], true)) return ['Sudah Berangkat', 'primary'];
-        if ($item->status === 'setuju') return ['Siap Berangkat', 'info'];
-        if ($item->pembayaran?->status === 'diverifikasi') return ['Menunggu Keberangkatan', 'warning'];
-        if ($item->pembayaran?->status === 'diproses') return ['Proses Verifikasi', 'warning'];
-        if ($item->jemaah?->status_data !== 'terverifikasi') return ['Lengkapi Dokumen', 'danger'];
+        if ($item->keberangkatan?->status === 'selesai') {
+            return ['Selesai Umrah', 'success'];
+        }
+        if (in_array($item->keberangkatan?->status, ['berangkat', 'berlangsung', 'pulang'], true)) {
+            return ['Sudah Berangkat', 'primary'];
+        }
+        if ($item->status === 'setuju') {
+            return ['Siap Berangkat', 'info'];
+        }
+        if ($item->pembayaran?->status === 'diverifikasi') {
+            return ['Menunggu Keberangkatan', 'warning'];
+        }
+        if ($item->pembayaran?->status === 'diproses') {
+            return ['Proses Verifikasi', 'warning'];
+        }
+        if ($item->jemaah?->status_data !== 'terverifikasi') {
+            return ['Lengkapi Dokumen', 'danger'];
+        }
+
         return ['Menunggu Pembayaran', 'warning'];
     }
 
@@ -182,11 +201,11 @@ class ReportController extends Controller
             ['label' => 'Verifikasi Akun', 'status' => $item->jemaah?->user?->status === 'aktif' ? 'Selesai' : 'Belum Diproses', 'date' => $item->jemaah?->user?->updated_at?->translatedFormat('d M Y')],
             ['label' => 'Pilih Paket Umrah', 'status' => $item->paketUmrah ? 'Selesai' : 'Belum Diproses', 'date' => $item->created_at?->translatedFormat('d M Y')],
             ['label' => 'Lengkapi Data Diri', 'status' => $item->jemaah?->status_data === 'terverifikasi' ? 'Selesai' : 'Belum Diproses', 'date' => $item->jemaah?->updated_at?->translatedFormat('d M Y')],
-            ['label' => 'Upload Dokumen Pendukung', 'status' => $docs->whereIn('status', ['diproses', 'diverifikasi', 'ditolak'])->count() >= ($item->jemaah?->status_pernikahan === 'menikah' ? 7 : 6) ? 'Selesai' : 'Menunggu Upload', 'date' => $latestDoc?->updated_at?->translatedFormat('d M Y')],
+            ['label' => 'Upload Dokumen Pendukung', 'status' => $item->jemaah?->hasVerifiedRequiredDocuments() ? 'Selesai' : 'Menunggu Verifikasi', 'date' => $latestDoc?->updated_at?->translatedFormat('d M Y')],
             ['label' => 'Upload Bukti Pembayaran', 'status' => $payment ? 'Menunggu Verifikasi' : 'Belum Diproses', 'date' => $payment?->updated_at?->translatedFormat('d M Y')],
             ['label' => 'Verifikasi Pendaftaran', 'status' => $payment?->status === 'diverifikasi' ? 'Selesai' : 'Belum Diproses', 'date' => $payment?->updated_at?->translatedFormat('d M Y')],
             ['label' => 'Masuk Jadwal Keberangkatan', 'status' => $item->keberangkatan ? 'Selesai' : 'Belum Diproses', 'date' => $item->keberangkatan?->tanggal_keberangkatan?->translatedFormat('d M Y')],
-            ['label' => 'Sudah Berangkat', 'status' => in_array($item->keberangkatan?->status, ['berangkat','berlangsung','pulang','selesai'], true) ? 'Selesai' : 'Belum Diproses', 'date' => null],
+            ['label' => 'Sudah Berangkat', 'status' => in_array($item->keberangkatan?->status, ['berangkat', 'berlangsung', 'pulang', 'selesai'], true) ? 'Selesai' : 'Belum Diproses', 'date' => null],
             ['label' => 'Selesai Umrah', 'status' => $item->keberangkatan?->status === 'selesai' ? 'Selesai' : 'Belum Diproses', 'date' => null],
         ];
     }
@@ -198,7 +217,7 @@ class ReportController extends Controller
         $q = KeberangkatanJemaah::with([
             'jemaah.user',
             'paketUmrah',
-            'keberangkatan'
+            'keberangkatan',
         ]);
 
         if ($request->filled('program') && $request->program !== 'all') {
@@ -220,7 +239,7 @@ class ReportController extends Controller
             try {
 
                 $from = date('Y-m-d', strtotime($from));
-                $to   = date('Y-m-d', strtotime($to));
+                $to = date('Y-m-d', strtotime($to));
 
                 $q->whereHas('keberangkatan', function ($s) use ($from, $to) {
                     $s->whereBetween('tanggal_keberangkatan', [$from, $to]);
@@ -233,7 +252,7 @@ class ReportController extends Controller
 
         $items = $q->get();
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
 
         $sheet = $spreadsheet->getActiveSheet();
 
@@ -253,7 +272,7 @@ class ReportController extends Controller
         $sheet->getStyle('A3:F3')->getFont()->setBold(true);
 
         $row = 4;
-        $no  = 1;
+        $no = 1;
 
         foreach ($items as $it) {
 
@@ -273,15 +292,15 @@ class ReportController extends Controller
                 $statusPembayaran = 'Ditolak';
             }
 
-            $sheet->setCellValue('A' . $row, $no++);
-            $sheet->setCellValue('B' . $row, $it->jemaah->user->name ?? '-');
-            $sheet->setCellValue('C' . $row, $it->jemaah->nik ?? '-');
-            $sheet->setCellValue('D' . $row, $it->paketUmrah->nama_paket ?? '-');
+            $sheet->setCellValue('A'.$row, $no++);
+            $sheet->setCellValue('B'.$row, $it->jemaah->user->name ?? '-');
+            $sheet->setCellValue('C'.$row, $it->jemaah->nik ?? '-');
+            $sheet->setCellValue('D'.$row, $it->paketUmrah->nama_paket ?? '-');
             $sheet->setCellValue(
-                'E' . $row,
+                'E'.$row,
                 optional($it->keberangkatan->tanggal_keberangkatan)->format('d/m/Y')
             );
-            $sheet->setCellValue('F' . $row, $statusPembayaran);
+            $sheet->setCellValue('F'.$row, $statusPembayaran);
 
             $row++;
         }
@@ -292,22 +311,21 @@ class ReportController extends Controller
         }
 
         // BORDER
-        $sheet->getStyle('A3:F' . ($row - 1))
+        $sheet->getStyle('A3:F'.($row - 1))
             ->getBorders()
             ->getAllBorders()
             ->setBorderStyle(
                 \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
             );
 
-        $fileName = 'laporan_jemaah_' . date('Ymd_His') . '.xlsx';
+        $fileName = 'laporan_jemaah_'.date('Ymd_His').'.xlsx';
 
         $writer = new Xlsx($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $fileName, [
-            'Content-Type' =>
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 
@@ -316,7 +334,7 @@ class ReportController extends Controller
         $q = KeberangkatanJemaah::with([
             'jemaah.user',
             'paketUmrah',
-            'keberangkatan'
+            'keberangkatan',
         ]);
 
         if ($request->filled('program') && $request->program !== 'all') {
@@ -389,10 +407,10 @@ class ReportController extends Controller
         });
 
         $pdf = Pdf::loadView('reports.jemaah_print', [
-            'rows' => $rows
+            'rows' => $rows,
         ])->setPaper('a4', 'landscape');
 
-        $filename = 'laporan-jemaah-' . now()->format('YmdHis') . '.pdf';
+        $filename = 'laporan-jemaah-'.now()->format('YmdHis').'.pdf';
 
         return $pdf->download($filename);
     }

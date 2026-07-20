@@ -139,7 +139,7 @@
     <div class="modal fade" id="uploadModal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content upload-modal">
-                <form method="POST" action="/dokumen/upload" enctype="multipart/form-data">@csrf<input type="hidden"
+                <form id="documentUploadForm" method="POST" action="/dokumen/upload" enctype="multipart/form-data" novalidate>@csrf<input type="hidden"
                         name="jenis_dokumen" id="documentType">
                     <div class="modal-header">
                         <div><small>UPLOAD DOKUMEN</small>
@@ -547,6 +547,23 @@
                 ).removeClass('d-none');
                 $('#documentPlaceholder').addClass('d-none');
             });
+
+            $('#documentUploadForm').on('submit', function(event) {
+                if (!$('#documentFile')[0].files.length) {
+                    event.preventDefault();
+                    Swal.fire('Dokumen belum dipilih', 'Pilih file dokumen sebelum menekan Kirim Dokumen.', 'warning');
+                    return;
+                }
+                if (!this.checkValidity()) {
+                    event.preventDefault();
+                    this.reportValidity();
+                    Swal.fire('Data belum lengkap', 'Periksa kembali dokumen yang akan dikirim.', 'warning');
+                }
+            });
+
+            @if($errors->any())
+                Swal.fire('Upload gagal', @json($errors->first()), 'error');
+            @endif
         </script>
     @endpush
 @endsection

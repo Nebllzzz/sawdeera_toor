@@ -33,8 +33,8 @@
                                         <th>Paket</th>
                                         <th>Tanggal Berangkat</th>
                                         <th>Tanggal Pulang</th>
-                                        <th>Kuota</th>
-                                        <th>Terisi</th>
+                                        <th>Jumlah Kuota/Terisi</th>
+                                        <th>Pengajuan Reschedule</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -314,8 +314,8 @@
                     { data: "paket", name: "paket.nama_paket" },
                     { data: "tanggal_berangkat", name: "tanggal_keberangkatan" },
                     { data: "tanggal_pulang", name: "tanggal_pulang" },
-                    { data: "kuota", name: "kuota" },
-                    { data: "terisi", orderable: false, searchable: false },
+                    { data: "kuota_terisi", orderable: false, searchable: false },
+                    { data: "pengajuan_reschedule", orderable: false, searchable: false },
                     { data: "status_badge", name: "status" },
                     { data: "action", orderable: false, searchable: false },
                 ]

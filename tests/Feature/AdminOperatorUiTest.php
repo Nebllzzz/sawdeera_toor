@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\DataJemaah;
+use App\Models\DokumenJemaah;
 use App\Models\Keberangkatan;
 use App\Models\KeberangkatanJemaah;
+use App\Models\Pembayaran;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -43,13 +45,40 @@ class AdminOperatorUiTest extends TestCase
             'user_id' => $jemaahUser->id,
             'no_telepon' => '08123456789',
             'status_data' => 'terverifikasi',
+            'status_pernikahan' => 'belum_menikah',
         ]);
         [$packageId, $scheduleId] = $this->createPackageAndSchedule();
-        KeberangkatanJemaah::create([
+        $application = KeberangkatanJemaah::create([
             'keberangkatan_id' => $scheduleId,
             'jemaah_id' => $jemaah->id,
             'paket_umrah_id' => $packageId,
             'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
+        ]);
+        foreach ($jemaah->requiredDocumentTypes() as $type) {
+            DokumenJemaah::create([
+                'jemaah_id' => $jemaah->id,
+                'jenis_dokumen' => $type,
+                'file_path' => "dokumen/{$type}.pdf",
+                'status' => 'diverifikasi',
+            ]);
+        }
+        $payment = Pembayaran::create([
+            'keberangkatan_jemaah_id' => $application->id,
+            'jemaah_id' => $jemaah->id,
+            'keberangkatan_id' => $scheduleId,
+            'total_tagihan' => 25000000,
+            'jenis_pembayaran' => 'sekali_bayar',
+            'jumlah_tahap' => 1,
+            'status_rencana' => 'aktif',
+            'status' => 'diverifikasi',
+        ]);
+        $payment->tahapan()->create([
+            'urutan' => 1,
+            'nama_tahap' => 'Pembayaran Penuh',
+            'persentase' => 100,
+            'nominal' => 25000000,
+            'jatuh_tempo' => today(),
+            'status' => 'diverifikasi',
         ]);
 
         $response = $this->actingAs($operator)->postJson('/keberangkatan/jemaah/data', [

@@ -156,6 +156,7 @@
 
                     <div class="modal-header">
                         <h4>Lengkapi Fasilitas</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
                     <div class="modal-body">
@@ -205,6 +206,7 @@
 
                     <div class="modal-header">
                         <h4>Lengkapi Program</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
                     <div class="modal-body">

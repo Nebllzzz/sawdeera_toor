@@ -94,18 +94,48 @@
 
                         <button type="button"
                             class="close btnCloseModal"
+                            data-bs-dismiss="modal"
                             aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
 
                     <div class="modal-body">
-                        {{-- Isi form --}}
+                        <div class="form-group">
+                            <label for="name">Nama</label>
+                            <input type="text" id="name" name="name" class="form-control" value="{{ old('name') }}" minlength="3" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password <small class="text-muted" id="passwordHint"></small></label>
+                            <input type="password" id="password" name="password" class="form-control" minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="password_confirmation">Konfirmasi Password</label>
+                            <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select id="role" name="role" class="form-control" required>
+                                <option value="operator" @selected(old('role', 'operator') === 'operator')>Admin</option>
+                                <option value="admin" @selected(old('role') === 'admin')>Pimpinan</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="status">Status</label>
+                            <select id="status" name="status" class="form-control" required>
+                                <option value="aktif" @selected(old('status', 'aktif') === 'aktif')>Aktif</option>
+                                <option value="tidak_aktif" @selected(old('status') === 'tidak_aktif')>Tidak Aktif</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="modal-footer">
                         <button type="button"
-                            class="btn btn-secondary btnCloseModal">
+                            class="btn btn-secondary btnCloseModal" data-bs-dismiss="modal">
                             Batal
                         </button>
 
@@ -324,7 +354,10 @@
                 $("#email").val("");
                 $("#password").val("");
                 $("#password_confirmation").val("");
-                $("#role").val("admin");
+                $("#password").prop("required", true);
+                $("#password_confirmation").prop("required", true);
+                $("#passwordHint").text("(wajib diisi)");
+                $("#role").val("operator");
                 $("#status").val("aktif");
 
                 // TAMBAHKAN BARIS INI UNTUK MEMUNCULKAN MODAL
@@ -342,6 +375,8 @@
                 $("#email").val(btn.data("email"));
                 $("#role").val(btn.data("role"));
                 $("#status").val(btn.data("status"));
+                $("#password, #password_confirmation").val("").prop("required", false);
+                $("#passwordHint").text("(kosongkan jika tidak diubah)");
 
                 $("#modalUser").modal("show");
             });
@@ -370,7 +405,9 @@
                     },
 
                     error: function(err) {
-                        Swal.fire("Error", "Validasi gagal", "error");
+                        const errors = err.responseJSON?.errors;
+                        const message = errors ? Object.values(errors).flat()[0] : (err.responseJSON?.message || "Validasi gagal");
+                        Swal.fire("Error", message, "error");
                     },
                 });
             });

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Notifications\RegisterToAdmin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Notifications\RegisterToAdmin;
 
 class LoginController extends Controller
 {
@@ -25,13 +25,13 @@ class LoginController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
         // 1. CEK USER ADA ATAU TIDAK
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->with('gagal', 'Email tidak ditemukan');
         }
 
@@ -41,13 +41,13 @@ class LoginController extends Controller
         }
 
         if ($user->status === 'tidak_aktif') {
-            return back()->with('gagal', 'Akun kamu tidak aktif');
+            return back()->with('gagal', 'akun anda ditolak, silahkan hubungi admin untuk info selanjutnya');
         }
 
         // 3. CEK PASSWORD + LOGIN
         if (Auth::attempt([
             'email' => $request->email,
-            'password' => $request->password
+            'password' => $request->password,
         ])) {
             return redirect('/dashboard');
         }
@@ -67,7 +67,7 @@ class LoginController extends Controller
                 'password' => 'required|min:6|confirmed',
             ], [
                 'email.unique' => 'Email sudah terdaftar',
-                'password.confirmed' => 'Konfirmasi password tidak cocok'
+                'password.confirmed' => 'Konfirmasi password tidak cocok',
             ]);
 
             if ($validator->fails()) {
@@ -110,7 +110,6 @@ class LoginController extends Controller
                 $recipient->notify(new RegisterToAdmin($data));
             }
 
-
             return redirect('/login')
                 ->with('berhasil', 'Registrasi berhasil, tunggu verifikasi admin untuk melanjutkan login!');
         } catch (\Exception $e) {
@@ -125,6 +124,7 @@ class LoginController extends Controller
     public function actionlogout()
     {
         Auth::logout();
+
         return redirect('/login')->with('berhasil', 'Anda Berhasil Logout');
     }
 }

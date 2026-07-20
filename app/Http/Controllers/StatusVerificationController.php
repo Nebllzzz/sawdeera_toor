@@ -7,14 +7,6 @@ use App\Models\Pembayaran;
 
 class StatusVerificationController extends Controller
 {
-    private const BASE_DOCUMENTS = [
-        'ktp', 'paspor', 'visa', 'vaksin', 'kartu_keluarga', 'foto_4x6',
-    ];
-
-    private const MARRIED_DOCUMENTS = [
-        'ktp', 'paspor', 'visa', 'vaksin', 'kartu_keluarga', 'buku_nikah', 'foto_4x6',
-    ];
-
     public function index()
     {
         abort_unless(auth()->user()->role === 'jemaah', 403);
@@ -31,7 +23,7 @@ class StatusVerificationController extends Controller
             'package' => $pengajuan
                 ? $this->status('verified', 'Selesai', 'Paket umrah telah dipilih.')
                 : $this->status('waiting', 'Belum Selesai', 'Anda belum memilih paket keberangkatan.'),
-            'profile' => $this->profileCompletionStatus($jemaah),
+            'profile' => $this->profileStatus($jemaah),
             'documents' => $this->documentStatus($documents, $jemaah),
             'payment' => $this->paymentUploadStatus($payment),
             'approval' => $this->adminApprovalStatus($jemaah, $documents, $payment),
@@ -43,20 +35,6 @@ class StatusVerificationController extends Controller
         return view('home.status-verifikasi.index', compact(
             'user', 'jemaah', 'pengajuan', 'payment', 'documents', 'steps', 'complete', 'completedCount', 'progressPercent'
         ));
-    }
-
-    private function profileCompletionStatus($jemaah): array
-    {
-        if (!$jemaah) {
-            return $this->status('waiting', 'Belum Selesai', 'Lengkapi data diri pada menu Pendaftaran Saya.');
-        }
-
-        $required = ['nik', 'jenis_kelamin', 'no_telepon', 'tempat_lahir', 'tanggal_lahir', 'alamat', 'status_pernikahan'];
-        $complete = collect($required)->every(fn ($field) => filled($jemaah->{$field}));
-
-        return $complete
-            ? $this->status('verified', 'Selesai', 'Data diri wajib sudah lengkap.', $jemaah->updated_at)
-            : $this->status('processing', 'Sedang Dilengkapi', 'Masih ada data diri wajib yang belum terisi.');
     }
 
     private function profileStatus($jemaah): array
@@ -76,7 +54,7 @@ class StatusVerificationController extends Controller
         $uploadedCount = $docs->filter(fn ($doc) => in_array($doc?->status, ['diproses', 'diverifikasi', 'ditolak'], true))->count();
         $rejected = $docs->filter(fn ($doc) => $doc?->status === 'ditolak')->sortByDesc('verified_at')->first();
         if ($rejected) {
-                return $this->status('rejected', 'Perlu Perbaikan', 'Terdapat dokumen yang ditolak.', $rejected->verified_at, $rejected->keterangan_penolakan);
+            return $this->status('rejected', 'Perlu Perbaikan', 'Terdapat dokumen yang ditolak.', $rejected->verified_at, $rejected->keterangan_penolakan);
         }
         if ($docs->filter(fn ($doc) => $doc?->status === 'diverifikasi')->count() === count($requiredDocuments)) {
             return $this->status('verified', 'Selesai', 'Seluruh dokumen pendukung telah diverifikasi.', $docs->max('verified_at'));
@@ -84,17 +62,26 @@ class StatusVerificationController extends Controller
         if ($uploadedCount > 0) {
             return $this->status('processing', 'Sedang Diverifikasi', "{$uploadedCount} dari ".count($requiredDocuments).' dokumen sudah diunggah dan sedang diperiksa.');
         }
+
         return $this->status('waiting', 'Belum Selesai', 'Unggah '.count($requiredDocuments).' dokumen pendukung yang diwajibkan.');
     }
 
     private function paymentUploadStatus(?Pembayaran $payment): array
     {
-        if (!$payment) {
+        if (! $payment) {
             return $this->status('waiting', 'Belum Selesai', 'Rencana pembayaran belum tersedia.');
         }
 
-        if ($payment->tahapan?->whereNotNull('bukti_pembayaran')->isNotEmpty() || filled($payment->bukti_pembayaran)) {
-            return $this->status('verified', 'Selesai', 'Bukti pembayaran sudah diunggah.', $payment->updated_at);
+        $steps = $payment->tahapan ?? collect();
+        if ($steps->isNotEmpty() && $steps->every(fn ($step) => $step->status === 'diverifikasi')) {
+            return $this->status('verified', 'Selesai', 'Seluruh tahap pembayaran telah diverifikasi.', $steps->max('verified_at'));
+        }
+        if ($rejected = $steps->firstWhere('status', 'ditolak')) {
+            return $this->status('rejected', 'Perlu Perbaikan', 'Terdapat bukti pembayaran yang ditolak.', $rejected->verified_at, $rejected->keterangan_penolakan);
+        }
+        $processed = $steps->whereIn('status', ['diproses', 'diverifikasi'])->count();
+        if ($processed > 0) {
+            return $this->status('processing', 'Sedang Diverifikasi', "{$processed} dari {$steps->count()} tahap pembayaran sedang atau sudah diverifikasi.");
         }
 
         return $this->status('waiting', 'Belum Selesai', 'Unggah bukti pembayaran sesuai rencana tagihan.');
@@ -104,7 +91,7 @@ class StatusVerificationController extends Controller
     {
         $profile = $this->profileStatus($jemaah);
         $document = $this->documentStatus($documents, $jemaah);
-        if (!$payment) {
+        if (! $payment) {
             return $this->status('waiting', 'Belum Selesai', 'Pembayaran belum tersedia.');
         }
 
@@ -125,8 +112,6 @@ class StatusVerificationController extends Controller
 
     private function requiredDocumentsFor($jemaah): array
     {
-        return $jemaah?->status_pernikahan === 'menikah'
-            ? self::MARRIED_DOCUMENTS
-            : self::BASE_DOCUMENTS;
+        return $jemaah?->requiredDocumentTypes() ?? \App\Models\DataJemaah::BASE_REQUIRED_DOCUMENTS;
     }
 }

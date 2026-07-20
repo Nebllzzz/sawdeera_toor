@@ -7,7 +7,13 @@
     $package = $kJ?->paketUmrah;
     $schedule = $kJ?->keberangkatan;
     $requiredTotal = count($docStatus);
-    $paymentStatus = $latestPayment?->status ?? 'belum_upload';
+    $paymentStatus = $paymentComplete
+        ? 'diverifikasi'
+        : ($latestPayment?->tahapan?->contains('status', 'ditolak')
+            ? 'ditolak'
+            : ($latestPayment?->tahapan?->whereIn('status', ['diproses', 'diverifikasi'])->isNotEmpty()
+                ? 'diproses'
+                : 'belum_upload'));
 
     $paymentLabel = [
         'belum_upload' => 'Belum Lunas',
@@ -46,28 +52,28 @@
         ],
         [
             'Lengkapi Data Diri',
-            in_array($jemaah->status_data, ['menunggu_verifikasi', 'terverifikasi'], true)
+            $jemaah->status_data === 'terverifikasi'
                 ? 'Selesai'
-                : 'Belum Selesai',
-            in_array($jemaah->status_data, ['menunggu_verifikasi', 'terverifikasi'], true),
+                : ($jemaah->status_data === 'menunggu_verifikasi' ? 'Sedang Diverifikasi' : 'Belum Selesai'),
+            $jemaah->status_data === 'terverifikasi',
             'fas fa-id-card',
         ],
         [
             'Upload Dokumen Pendukung',
             $docStepLabel,
-            $uploadedCount > 0,
+            $completeCount === $requiredTotal,
             'fas fa-file-upload',
         ],
         [
             'Upload Bukti Pembayaran',
             $paymentStepLabel,
-            (bool) $latestPayment,
+            $paymentComplete,
             'fas fa-wallet',
         ],
         [
             'Verifikasi Approval Admin',
-            $latestPayment?->status === 'diverifikasi' ? 'Selesai' : 'Belum Selesai',
-            $latestPayment?->status === 'diverifikasi',
+            $paymentComplete && $jemaah->status_data === 'terverifikasi' && $completeCount === $requiredTotal ? 'Selesai' : 'Belum Selesai',
+            $paymentComplete && $jemaah->status_data === 'terverifikasi' && $completeCount === $requiredTotal,
             'fas fa-shield-alt',
         ],
     ];

@@ -50,7 +50,8 @@ class KeberangkatanController extends Controller
             ->addColumn('paket', fn (Keberangkatan $row) => $row->paket?->nama_paket ?? '-')
             ->addColumn('tanggal_berangkat', fn (Keberangkatan $row) => $row->tanggal_keberangkatan?->translatedFormat('d M Y') ?? '-')
             ->addColumn('tanggal_pulang', fn (Keberangkatan $row) => $row->tanggal_pulang?->translatedFormat('d M Y') ?? '-')
-            ->addColumn('terisi', fn (Keberangkatan $row) => $row->terisi)
+            ->addColumn('kuota_terisi', fn (Keberangkatan $row) => $row->terisi.'/'.$row->kuota)
+            ->addColumn('pengajuan_reschedule', fn (Keberangkatan $row) => $row->pending_reschedule_count)
             ->addColumn('status_badge', fn (Keberangkatan $row) => $this->statusBadge($row->status))
             ->addColumn('action', fn (Keberangkatan $row) => '<a href="/keberangkatan/detail/'.$row->id.'" class="btn btn-sm btn-primary"><i class="fas fa-eye mr-1"></i> Lihat Detail</a>')
             ->rawColumns(['status_badge', 'action'])
@@ -75,7 +76,8 @@ class KeberangkatanController extends Controller
             'keberangkatan',
             'pendingReschedule',
             'reschedules' => fn ($q) => $q->latest(),
-        ])->where('keberangkatan_id', $request->keberangkatan_id);
+        ])->where('keberangkatan_id', $request->keberangkatan_id)
+            ->readyForApproval();
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -179,7 +181,6 @@ class KeberangkatanController extends Controller
 
     public function reviewReschedule($id)
     {
-        abort_unless(auth()->user()->role === 'admin', 403);
         $reschedule = $this->rescheduleQuery()->findOrFail($id);
 
         return view('home.keberangkatan.review-reschedule', compact('reschedule'));
@@ -187,19 +188,18 @@ class KeberangkatanController extends Controller
 
     public function approveReschedule($id)
     {
-        abort_unless(auth()->user()->role === 'admin', 403);
-
         DB::transaction(function () use ($id) {
             $reschedule = KeberangkatanJemaahReschedule::whereKey($id)->lockForUpdate()->firstOrFail();
             abort_unless($reschedule->status === KeberangkatanJemaahReschedule::STATUS_MENUNGGU, 422, 'Pengajuan sudah diproses.');
 
             $pengajuan = KeberangkatanJemaah::whereKey($reschedule->keberangkatan_jemaah_id)->lockForUpdate()->firstOrFail();
             $tujuan = Keberangkatan::whereKey($reschedule->keberangkatan_tujuan_id)->withCount('jemaah')->lockForUpdate()->firstOrFail();
+            abort_unless($tujuan->status === Keberangkatan::STATUS_AKTIF, 422, 'Jadwal tujuan sudah tidak aktif.');
             abort_unless(! $tujuan->isFull(), 422, 'Kuota jadwal tujuan sudah penuh.');
 
             $pengajuan->update([
                 'keberangkatan_id' => $reschedule->keberangkatan_tujuan_id,
-                'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
+                'status' => KeberangkatanJemaah::STATUS_SETUJU,
             ]);
             $reschedule->update([
                 'status' => KeberangkatanJemaahReschedule::STATUS_DISETUJUI,
@@ -208,12 +208,11 @@ class KeberangkatanController extends Controller
             ]);
         });
 
-        return redirect()->back()->with('berhasil', 'Reschedule disetujui. Jemaah perlu menyetujui jadwal baru.');
+        return redirect()->back()->with('berhasil', 'Reschedule disetujui dan jadwal baru otomatis berlaku.');
     }
 
     public function rejectReschedule(Request $request, $id)
     {
-        abort_unless(auth()->user()->role === 'admin', 403);
         $data = $request->validate(['alasan_tolak_reschedule' => 'required|string|max:2000']);
 
         DB::transaction(function () use ($id, $data) {
@@ -221,7 +220,7 @@ class KeberangkatanController extends Controller
             abort_unless($reschedule->status === KeberangkatanJemaahReschedule::STATUS_MENUNGGU, 422, 'Pengajuan sudah diproses.');
 
             KeberangkatanJemaah::whereKey($reschedule->keberangkatan_jemaah_id)->update([
-                'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
+                'status' => KeberangkatanJemaah::STATUS_SETUJU,
             ]);
             $reschedule->update([
                 'status' => KeberangkatanJemaahReschedule::STATUS_DITOLAK,
@@ -237,7 +236,11 @@ class KeberangkatanController extends Controller
     private function baseQuery()
     {
         return Keberangkatan::with(['paket.hotelMakkah', 'paket.hotelMadinah', 'maskapaiBerangkat', 'maskapaiPulang', 'leader', 'pembuat', 'pengubah'])
-            ->withCount(['jemaah' => fn ($q) => $q->whereIn('status', KeberangkatanJemaah::STATUSES)]);
+            ->withCount([
+                'jemaah' => fn ($q) => $q->whereIn('status', KeberangkatanJemaah::STATUSES),
+                'jemaah as ready_jemaah_count' => fn ($q) => $q->readyForApproval(),
+                'rescheduleRequests as pending_reschedule_count' => fn ($q) => $q->where('status', KeberangkatanJemaahReschedule::STATUS_MENUNGGU),
+            ]);
     }
 
     private function rescheduleQuery()

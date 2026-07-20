@@ -345,6 +345,45 @@
                     },
                 ]
             });
+
+            $(document).on('click', '.delete-account', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Hapus akun jemaah?',
+                    text: 'Data akun yang dihapus tidak dapat dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, hapus'
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+                    $.ajax({
+                        url: `/jemaah/delete/${id}`,
+                        type: 'DELETE',
+                        data: { _token: $('meta[name="csrf-token"]').attr('content') }
+                    }).done(r => Swal.fire('Berhasil', r.message, 'success').then(() => $('#dt').DataTable().ajax.reload()))
+                      .fail(x => Swal.fire('Gagal', x.responseJSON?.message || 'Akun gagal dihapus.', 'error'));
+                });
+            });
+
+            $(document).on('click', '.reset-password', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Reset password akun?',
+                    text: 'Password lama tidak akan bisa digunakan kembali.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, reset'
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+                    $.post(`/jemaah/reset-password/${id}`, {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    }).done(r => Swal.fire({
+                        title: 'Password berhasil direset',
+                        html: `Password sementara:<br><code style="font-size:1.1rem">${$('<div>').text(r.temporary_password).html()}</code><br><small>Salin dan sampaikan kepada jemaah secara aman.</small>`,
+                        icon: 'success'
+                    })).fail(x => Swal.fire('Gagal', x.responseJSON?.message || 'Password gagal direset.', 'error'));
+                });
+            });
         </script>
     @endpush
 @endsection

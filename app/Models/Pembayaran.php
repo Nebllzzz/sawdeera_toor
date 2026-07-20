@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Pembayaran extends Model
 {
     protected $table = 'pembayaran';
+
     protected $guarded = ['id'];
 
     protected function casts(): array
@@ -36,5 +37,12 @@ class Pembayaran extends Model
     public function tahapan()
     {
         return $this->hasMany(PembayaranTahapan::class)->orderBy('urutan');
+    }
+
+    public function isFullyVerified(): bool
+    {
+        $steps = $this->relationLoaded('tahapan') ? $this->tahapan : $this->tahapan()->get();
+
+        return $steps->isNotEmpty() && $steps->every(fn ($step) => $step->status === 'diverifikasi');
     }
 }

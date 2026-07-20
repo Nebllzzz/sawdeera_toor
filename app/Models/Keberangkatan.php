@@ -9,13 +9,21 @@ class Keberangkatan extends Model
     protected $table = 'keberangkatan';
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_AKTIF = 'aktif';
+
     public const STATUS_PENGAJUAN = 'pengajuan';
+
     public const STATUS_DIREVISI = 'direvisi';
+
     public const STATUS_DISETUJUI = 'disetujui';
+
     public const STATUS_BERANGKAT = 'berangkat';
+
     public const STATUS_BERLANGSUNG = 'berlangsung';
+
     public const STATUS_PULANG = 'pulang';
+
     public const STATUS_SELESAI = 'selesai';
 
     public const STATUSES = [
@@ -39,7 +47,7 @@ class Keberangkatan extends Model
 
     public function maskapaiBerangkat()
     {
-        return $this->belongsTo(Maskapai::class,'maskapai_berangkat_id');
+        return $this->belongsTo(Maskapai::class, 'maskapai_berangkat_id');
     }
 
     public function paket()
@@ -49,17 +57,22 @@ class Keberangkatan extends Model
 
     public function maskapaiPulang()
     {
-        return $this->belongsTo(Maskapai::class,'maskapai_pulang_id');
+        return $this->belongsTo(Maskapai::class, 'maskapai_pulang_id');
     }
 
     public function leader()
     {
-        return $this->belongsTo(TourLeader::class,'tour_leader_id');
+        return $this->belongsTo(TourLeader::class, 'tour_leader_id');
     }
 
     public function jemaah()
     {
         return $this->hasMany(KeberangkatanJemaah::class);
+    }
+
+    public function rescheduleRequests()
+    {
+        return $this->hasMany(KeberangkatanJemaahReschedule::class, 'keberangkatan_asal_id');
     }
 
     public function pembuat()

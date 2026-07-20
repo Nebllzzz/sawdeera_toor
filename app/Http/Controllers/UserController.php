@@ -1,76 +1,72 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\DataTables;
 
 class UserController extends Controller
 {
+    public function index()
+    {
+        return view('home.user.index');
+    }
 
-public function index()
-{
-    return view('home.user.index');
-}
+    public function data(Request $request)
+    {
+        if (request()->ajax()) {
 
-public function data(Request $request)
-{
-    if(request()->ajax()){
+            $auth = auth()->id();
 
-        $auth = auth()->id();
+            $query = User::query()
+                ->where('id', '!=', 1)
+                ->where('id', '!=', $auth)
+                ->where('role', 'operator')
+                ->orderby('created_at', 'desc');
 
-        $query = User::query()
-            ->where('id','!=',1)
-            ->where('id','!=',$auth)
-            ->where('role', 'operator')
-            ->orderby('created_at', 'desc');
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('roles', function ($row) {
 
-        return DataTables::of($query)
+                    if ($row->role == 'admin') {
+                        return "<span class='badge badge-danger'>Pimpinan</span>";
+                    }
 
-        ->addIndexColumn()
+                    if ($row->role == 'operator') {
+                        return "<span class='badge badge-info'>Admin</span>";
+                    }
+                })
+                ->addColumn('statusActivity', function ($row) {
 
-        ->addColumn('roles', function ($row) {
+                    if ($row->status == 'aktif') {
+                        return "<span class='badge badge-success'>Aktif</span>";
+                    }
 
-            if($row->role == 'admin'){
-                return "<span class='badge badge-danger'>Pimpinan</span>";
-            }
+                    if ($row->status == 'proses') {
+                        return "<span class='badge badge-warning'>Proses</span>";
+                    }
 
-            if($row->role == 'operator'){
-                return "<span class='badge badge-info'>Admin</span>";
-            }
-        })
+                    return "<span class='badge badge-danger'>Tidak Aktif</span>";
+                })
+                ->addColumn('action', function ($row) {
 
-        ->addColumn('statusActivity', function ($row) {
-
-            if($row->status == 'aktif'){
-                return "<span class='badge badge-success'>Aktif</span>";
-            }
-
-            if($row->status == 'proses'){
-                return "<span class='badge badge-warning'>Proses</span>";
-            }
-
-            return "<span class='badge badge-danger'>Tidak Aktif</span>";
-        })
-
-        ->addColumn('action', function ($row) {
-
-            $updateButton = "
+                    $updateButton = "
             <a href='javascript:void(0)'
             class='btn btn-icon btn-bg-warning btn-active-color-light btn-sm me-1 editUser'
             data-id='{$row->id}'
-            data-name='{$row->name}'
-            data-email='{$row->email}'
-            data-role='{$row->role}'
-            data-status='{$row->status}'
+            data-name='".e($row->name)."'
+            data-email='".e($row->email)."'
+            data-role='".e($row->role)."'
+            data-status='".e($row->status)."'
             style='background:#FF9F43'>
                 <i class='bi bi-pencil-square text-white'></i>
             </a>
             ";
 
-            $deleteButton = "
+                    $deleteButton = "
             <a href='javascript:void(0)'
             class='btn btn-icon btn-danger btn-active-color-light btn-sm deleteUser'
             data-id='{$row->id}'>
@@ -78,77 +74,74 @@ public function data(Request $request)
             </a>
             ";
 
-            return $updateButton.$deleteButton;
-        })
+                    return $updateButton.$deleteButton;
+                })
+                ->rawColumns([
+                    'roles',
+                    'statusActivity',
+                    'action',
+                ])
+                ->make(true);
+        }
 
-        ->rawColumns([
-            'roles',
-            'statusActivity',
-            'action'
-        ])
-
-        ->make(true);
+        return view('home.user.index');
     }
 
-    return view('home.user.index');
-}
-
-public function store(Request $request)
-{
-    $validateData = $request->validate([
-        'name'=>'required|min:3',
-        'email'=>'required|email|unique:users,email',
-        'password'=>'required|min:6|confirmed',
-        'role'=>'required',
-        'status'=>'required'
-    ]);
-
-    $validateData['password'] = Hash::make($validateData['password']);
-
-    $user = User::create($validateData);
-
-    return response()->json([
-        'success'=>true,
-        'message'=>'User berhasil ditambahkan',
-        'data'=>$user
-    ]);
-}
-
-public function update(Request $request,$id)
-{
-    $user = User::findOrFail($id);
-
-    $validateData = $request->validate([
-        'name'=>'required|min:3',
-        'email'=>'required|email',
-        'role'=>'required',
-        'status'=>'required'
-    ]);
-
-    if($request->password){
-        $request->validate([
-            'password'=>'min:6|confirmed'
+    public function store(Request $request)
+    {
+        $validateData = $request->validate([
+            'name' => 'required|min:3',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6|confirmed',
+            'role' => ['required', Rule::in(['admin', 'operator'])],
+            'status' => ['required', Rule::in(['aktif', 'tidak_aktif'])],
         ]);
 
-        $validateData['password'] = Hash::make($request->password);
+        $validateData['password'] = Hash::make($validateData['password']);
+
+        $user = User::create($validateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil ditambahkan',
+            'data' => $user,
+        ]);
     }
 
-    $user->update($validateData);
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
 
-    return response()->json([
-        'success'=>true,
-        'message'=>'User berhasil diupdate'
-    ]);
-}
+        $validateData = $request->validate([
+            'name' => 'required|min:3',
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'role' => ['required', Rule::in(['admin', 'operator'])],
+            'status' => ['required', Rule::in(['aktif', 'tidak_aktif'])],
+        ]);
 
-public function destroy($id)
-{
-    User::find($id)->delete();
+        if ($request->password) {
+            $request->validate([
+                'password' => 'min:6|confirmed',
+            ]);
 
-    return response()->json([
-        'success'=>true,
-        'message'=>'User berhasil dihapus'
-    ]);
-}
+            $validateData['password'] = Hash::make($request->password);
+        }
 
+        $user->update($validateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil diupdate',
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        User::find($id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil dihapus',
+        ]);
+    }
 }

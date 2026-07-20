@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\DataJemaah;
 use App\Models\DokumenJemaah;
+use App\Models\Keberangkatan;
+use App\Models\KeberangkatanJemaah;
+use App\Models\Maskapai;
+use App\Models\PaketUmrah;
 use App\Models\Pembayaran;
 use App\Models\PembayaranTahapan;
-use App\Models\KeberangkatanJemaah;
-use App\Models\Keberangkatan;
-use App\Models\PaketUmrah;
 use App\Models\TourLeader;
-use App\Models\Maskapai;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -43,7 +43,7 @@ class DashboardController extends Controller
                 ->groupBy('ym')
                 ->orderBy('ym')
                 ->get()
-                ->mapWithKeys(fn($r) => [$r->ym => (float)$r->total]);
+                ->mapWithKeys(fn ($r) => [$r->ym => (float) $r->total]);
 
             // status dokumen breakdown
             $dokumenStatus = DokumenJemaah::selectRaw('status, count(*) as c')
@@ -102,25 +102,26 @@ class DashboardController extends Controller
             return view('dashboard.jemaah-empty');
         }
 
-        $required = ['ktp', 'paspor', 'visa', 'vaksin', 'kartu_keluarga', 'foto_4x6'];
-        if ($jemaah->status_pernikahan === 'menikah') {
-            $required[] = 'buku_nikah';
-        }
+        $required = $jemaah->requiredDocumentTypes();
         $docs = DokumenJemaah::where('jemaah_id', $jemaah->id)->get();
 
         $docStatus = collect($required)->mapWithKeys(function ($k) use ($docs) {
             $found = $docs->firstWhere('jenis_dokumen', $k);
-            if (! $found) return [$k => 'missing'];
+            if (! $found) {
+                return [$k => 'missing'];
+            }
+
             return [$k => $found->status];
         })->toArray();
 
-        $uploadedCount = collect($docStatus)->filter(fn($s) => in_array($s, ['diproses', 'diverifikasi', 'ditolak'], true))->count();
-        $missingCount = collect($docStatus)->filter(fn($s) => $s === 'missing')->count();
-        $rejectedCount = collect($docStatus)->filter(fn($s) => $s === 'ditolak')->count();
-        $completeCount = collect($docStatus)->filter(fn($s) => $s === 'diverifikasi')->count();
+        $uploadedCount = collect($docStatus)->filter(fn ($s) => in_array($s, ['diproses', 'diverifikasi', 'ditolak'], true))->count();
+        $missingCount = collect($docStatus)->filter(fn ($s) => $s === 'missing')->count();
+        $rejectedCount = collect($docStatus)->filter(fn ($s) => $s === 'ditolak')->count();
+        $completeCount = collect($docStatus)->filter(fn ($s) => $s === 'diverifikasi')->count();
 
         // latest payment
-        $latestPayment = Pembayaran::where('jemaah_id', $jemaah->id)->orderByDesc('created_at')->first();
+        $latestPayment = Pembayaran::with('tahapan')->where('jemaah_id', $jemaah->id)->orderByDesc('created_at')->first();
+        $paymentComplete = $latestPayment?->isFullyVerified() ?? false;
 
         // keberangkatan info
         $kJ = KeberangkatanJemaah::with('keberangkatan', 'paketUmrah', 'jemaah')
@@ -139,8 +140,7 @@ class DashboardController extends Controller
             $timezone = 'Asia/Jakarta';
 
             $tanggalBerangkat = Carbon::parse(
-                $kJ->keberangkatan->tanggal_keberangkatan
-            , $timezone)->startOfDay();
+                $kJ->keberangkatan->tanggal_keberangkatan, $timezone)->startOfDay();
 
             $hariIni = Carbon::now($timezone)->startOfDay();
 
@@ -160,12 +160,16 @@ class DashboardController extends Controller
         // data diri + dokumen wajib + pembayaran
         $points = count($required) + 2;
         $score = 0;
-        // 1. data diri
-        $score++;
-        // docs
-        $score += $uploadedCount; // dokumen yang sudah upload tetap dihitung sebagai progress
-        // pembayaran
-        if ($latestPayment && $latestPayment->status === 'diverifikasi') $score++;
+        // 1. data diri hanya selesai setelah diverifikasi admin
+        if ($jemaah->status_data === 'terverifikasi') {
+            $score++;
+        }
+        // dokumen hanya dihitung selesai satu per satu setelah diverifikasi
+        $score += $completeCount;
+        // pembayaran selesai setelah seluruh tahap diverifikasi
+        if ($paymentComplete) {
+            $score++;
+        }
 
         $percent = round(($score / $points) * 100);
 
@@ -182,6 +186,7 @@ class DashboardController extends Controller
             'completeCount',
             'uploadedCount',
             'latestPayment',
+            'paymentComplete',
             'kJ',
             'countdown',
             'percent',

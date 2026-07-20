@@ -42,10 +42,14 @@
                                 <h3 class="mb-0">Aksi</h3>
                             </div>
                             <div class="card-body">
-                                <button class="btn {{ $user->status === 'aktif' ? 'btn-danger' : 'btn-success' }} btn-block"
-                                    id="toggleAccount">
-                                    {{ $user->status === 'aktif' ? 'Nonaktifkan Akun Jemaah' : 'Aktifkan Akun Jemaah' }}
-                                </button>
+                                @if($user->status === 'proses')
+                                    <button class="btn btn-success btn-block account-action w-100 mb-2" data-status="aktif">Aktifkan</button>
+                                    <button class="btn btn-danger btn-block account-action w-100" data-status="tidak_aktif">Tolak</button>
+                                @elseif($user->status === 'aktif')
+                                    <button class="btn btn-danger btn-block account-action w-100" data-status="tidak_aktif">Nonaktifkan</button>
+                                @else
+                                    <button class="btn btn-success btn-block account-action w-100" data-status="aktif">Aktifkan</button>
+                                @endif
                             </div>
                         </div>
                         <div class="card">
@@ -142,17 +146,20 @@
     </style>
     @push('scripts')
         <script>
-            $('#toggleAccount').click(function() {
+            $('.account-action').click(function() {
+                const status = $(this).data('status');
                 Swal.fire({
-                        title: 'Ubah status akun?',
-                        icon: 'question',
+                        title: status === 'aktif' ? 'Aktifkan akun jemaah?' : '{{ $user->status === 'proses' ? 'Tolak registrasi akun?' : 'Nonaktifkan akun jemaah?' }}',
+                        text: status === 'aktif' ? 'Jemaah akan dapat login ke sistem.' : 'Jemaah tidak akan dapat login ke sistem.',
+                        icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Ya'
+                        confirmButtonText: status === 'aktif' ? 'Ya, aktifkan' : 'Ya, lanjutkan'
                     })
                     .then(r => {
                         if (!r.isConfirmed) return;
-                        $.post('/jemaah/toggle/{{ $user->id }}', {
-                                _token: $('meta[name="csrf-token"]').attr('content')
+                            $.post('/jemaah/toggle/{{ $user->id }}', {
+                                _token: $('meta[name="csrf-token"]').attr('content'),
+                                status: status
                             })
                             .done(x => Swal.fire('Berhasil', x.message, 'success').then(() => location.reload()))
                             .fail(x => Swal.fire('Gagal', x.responseJSON?.message || 'Status gagal diubah',

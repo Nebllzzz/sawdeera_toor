@@ -39,8 +39,9 @@
                                 <div class="summary-grid">
                                     <div><small>Tanggal Berangkat</small><b>{{ $keberangkatan->tanggal_keberangkatan?->translatedFormat('d M Y') }}</b></div>
                                     <div><small>Tanggal Pulang</small><b>{{ $keberangkatan->tanggal_pulang?->translatedFormat('d M Y') }}</b></div>
-                                    <div><small>Kuota</small><b>{{ $keberangkatan->kuota }} Jemaah</b></div>
-                                    <div><small>Terisi</small><b>{{ $keberangkatan->terisi }} Jemaah</b></div>
+                                    <div><small>Jumlah Kuota/Terisi</small><b>{{ $keberangkatan->terisi }}/{{ $keberangkatan->kuota }} Jemaah</b></div>
+                                    <div><small>Jemaah Siap Approval</small><b>{{ $keberangkatan->ready_jemaah_count }} Jemaah</b></div>
+                                    <div><small>Pengajuan Reschedule</small><b>{{ $keberangkatan->pending_reschedule_count }} Pengajuan</b></div>
                                 </div>
                             </div>
                         </div>
@@ -81,6 +82,11 @@
                                 @forelse($actions as $action)
                                     @if($action === 'revise')
                                         <button class="btn btn-warning btn-block mb-2 w-100" data-toggle="modal" data-target="#modalRevisi"><i class="fas fa-comment-dots mr-2"></i>Minta Revisi</button>
+                                    @elseif($action === 'submit' && $keberangkatan->ready_jemaah_count < $keberangkatan->kuota)
+                                        <button class="btn btn-success btn-block mb-2 w-100" disabled title="Kuota jemaah terverifikasi belum penuh">
+                                            {{ app(\App\Services\KeberangkatanStatusService::class)->actionLabel($action) }}
+                                        </button>
+                                        <small class="text-muted d-block mb-2">Menunggu {{ $keberangkatan->kuota - $keberangkatan->ready_jemaah_count }} jemaah lagi yang data, dokumen, dan seluruh pembayarannya terverifikasi.</small>
                                     @else
                                         <button class="btn btn-success btn-block mb-2 w-100 status-action" data-action="{{ $action }}">{{ app(\App\Services\KeberangkatanStatusService::class)->actionLabel($action) }}</button>
                                     @endif
@@ -93,7 +99,7 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center"><h3 class="mb-0">List Jemaah</h3></div>
+                    <div class="card-header d-flex justify-content-between align-items-center"><h3 class="mb-0">List Jemaah Siap Approval</h3></div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle" id="dtJemaah">

@@ -10,6 +10,7 @@ use App\Models\PaketUmrah;
 use App\Models\Pembayaran;
 use App\Models\User;
 use App\Notifications\PaymentUploadedToAdmin;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +57,7 @@ class KeberangkatanJemaahController extends Controller
             };
         }
         if ($request->filled('maskapai')) {
-            $durasiMaskapai = Keberangkatan::whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+            $durasiMaskapai = Keberangkatan::where('status', Keberangkatan::STATUS_AKTIF)
                 ->where(fn ($q) => $q->where('maskapai_berangkat_id', $request->integer('maskapai'))
                     ->orWhere('maskapai_pulang_id', $request->integer('maskapai')))
                 ->whereNotNull('paket_id')
@@ -84,7 +85,7 @@ class KeberangkatanJemaahController extends Controller
         return response()->json([
             'paket' => $paket,
             'keberangkatan' => $this->availableSchedules($paket),
-            'can_apply' => !$this->hasActivePengajuan(),
+            'can_apply' => ! $this->hasActivePengajuan(),
         ]);
     }
 
@@ -101,6 +102,7 @@ class KeberangkatanJemaahController extends Controller
                     ->filter(fn ($scheme) => $days >= $scheme['minimum_days'])
                     ->map(fn ($scheme, $key) => ['value' => $key, ...$scheme])
                     ->values();
+
                 return $item;
             })->values();
 
@@ -124,11 +126,11 @@ class KeberangkatanJemaahController extends Controller
         }
 
         $paket = PaketUmrah::where('is_active', true)->findOrFail($data['paket_umrah_id']);
-        $jadwal = Keberangkatan::whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+        $jadwal = Keberangkatan::where('status', Keberangkatan::STATUS_AKTIF)
             ->where('paket_id', $paket->id)
             ->whereDate('tanggal_keberangkatan', '>', today())
             ->findOrFail($data['keberangkatan_id']);
-        abort_unless(!$jadwal->isFull(), 422, 'Kuota jadwal ini sudah penuh.');
+        abort_unless(! $jadwal->isFull(), 422, 'Kuota jadwal ini sudah penuh.');
 
         $scheme = self::SCHEMES[$data['jenis_pembayaran']];
         $days = today()->diffInDays($jadwal->tanggal_keberangkatan, false);
@@ -143,7 +145,7 @@ class KeberangkatanJemaahController extends Controller
                 'jemaah_id' => $jemaah->id,
                 'keberangkatan_id' => $jadwal->id,
                 'paket_umrah_id' => $paket->id,
-                'status' => KeberangkatanJemaah::STATUS_PENDAFTARAN,
+                'status' => KeberangkatanJemaah::STATUS_SETUJU,
             ]);
 
             $payment = Pembayaran::create([
@@ -167,6 +169,7 @@ class KeberangkatanJemaahController extends Controller
             ) as $installment) {
                 $payment->tahapan()->create($installment);
             }
+
             return $payment;
         });
 
@@ -179,13 +182,25 @@ class KeberangkatanJemaahController extends Controller
             'title' => 'Pengajuan Keberangkatan Berhasil',
             'message' => "Paket {$paket->nama_paket} berhasil diajukan. Rencana {$scheme['label']} telah dibuat.",
             'pembayaran_id' => $payment->id,
-            'url' => '/pemabayan',
+            'url' => '/pendaftaran-saya',
         ]));
 
         return response()->json([
-            'message' => 'Pengajuan berhasil. Rencana pembayaran sudah dibuat.',
-            'redirect' => '/pemabayan',
+            'message' => 'Pengajuan berhasil. Silakan lengkapi data diri Anda.',
+            'redirect' => '/pendaftaran-saya',
         ]);
+    }
+
+    public function downloadItinerary()
+    {
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+        $pengajuan = $this->currentPengajuan();
+        abort_unless($pengajuan, 404, 'Pengajuan keberangkatan tidak ditemukan.');
+
+        return Pdf::loadView('home.keberangkatan-jemaah.itinerary', [
+            'pengajuan' => $pengajuan,
+            'user' => auth()->user(),
+        ])->setPaper('a4')->download('itinerary-'.$pengajuan->keberangkatan->kode_keberangkatan.'.pdf');
     }
 
     public function approveSchedule()
@@ -217,12 +232,12 @@ class KeberangkatanJemaahController extends Controller
             ->withCount(['jemaah' => fn ($q) => $q->whereIn('status', KeberangkatanJemaah::STATUSES)])
             ->where('paket_id', $pengajuan->paket_umrah_id)
             ->where('id', '!=', $current->id)
-            ->whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+            ->where('status', Keberangkatan::STATUS_AKTIF)
             ->whereDate('tanggal_keberangkatan', '>', $current->tanggal_keberangkatan)
             ->whereDate('tanggal_keberangkatan', '>', today())
             ->orderBy('tanggal_keberangkatan')
             ->get()
-            ->filter(fn ($item) => !$item->isFull())
+            ->filter(fn ($item) => ! $item->isFull())
             ->map(fn ($item) => [
                 'id' => $item->id,
                 'kode' => $item->kode_keberangkatan,
@@ -258,8 +273,8 @@ class KeberangkatanJemaahController extends Controller
             abort_if($tujuan->id === $asal->id, 422, 'Pilih jadwal tujuan yang berbeda.');
             abort_unless((int) $tujuan->paket_id === (int) $pengajuan->paket_umrah_id, 422, 'Jadwal tujuan harus berasal dari paket yang sama.');
             abort_unless($tujuan->tanggal_keberangkatan->gt($asal->tanggal_keberangkatan), 422, 'Jadwal tujuan harus lebih mundur dari jadwal saat ini.');
-            abort_unless(in_array($tujuan->status, [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI], true), 422, 'Jadwal tujuan belum dapat dipilih.');
-            abort_unless(!$tujuan->isFull(), 422, 'Kuota jadwal tujuan sudah penuh.');
+            abort_unless($tujuan->status === Keberangkatan::STATUS_AKTIF, 422, 'Jadwal tujuan tidak aktif.');
+            abort_unless(! $tujuan->isFull(), 422, 'Kuota jadwal tujuan sudah penuh.');
 
             $pengajuan->reschedules()->create([
                 'jemaah_id' => $pengajuan->jemaah_id,
@@ -308,6 +323,7 @@ class KeberangkatanJemaahController extends Controller
             $usedPercent += $percent;
             $usedNominal += $nominal;
         }
+
         return $result;
     }
 
@@ -315,13 +331,13 @@ class KeberangkatanJemaahController extends Controller
     {
         return Keberangkatan::with(['maskapaiBerangkat', 'maskapaiPulang', 'leader'])
             ->where('paket_id', $paket->id)
-            ->whereIn('status', [Keberangkatan::STATUS_AKTIF, Keberangkatan::STATUS_DISETUJUI])
+            ->where('status', Keberangkatan::STATUS_AKTIF)
             ->whereDate('tanggal_keberangkatan', '>', today())
             ->withCount(['jemaah' => fn ($q) => $q->whereIn('status', KeberangkatanJemaah::STATUSES)])
             ->orderBy('tanggal_keberangkatan')
             ->get()
-            ->filter(function ($item) use ($paket) {
-                return $item->tanggal_keberangkatan && $item->tanggal_pulang && !$item->isFull();
+            ->filter(function ($item) {
+                return $item->tanggal_keberangkatan && $item->tanggal_pulang && ! $item->isFull();
             })
             ->values();
     }

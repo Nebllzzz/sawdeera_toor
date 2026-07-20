@@ -563,6 +563,13 @@
             }
         }
 
+        document.addEventListener('click', function(event) {
+            const closeButton = event.target.closest('[data-dismiss="modal"], [data-bs-dismiss="modal"], .btnCloseModal');
+            if (!closeButton) return;
+            const modal = closeButton.closest('.modal');
+            if (modal) hideAppModal(modal);
+        }, true);
+
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 const userMeta = document.querySelector('meta[name="user-id"]');

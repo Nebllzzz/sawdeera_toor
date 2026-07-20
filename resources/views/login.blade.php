@@ -509,6 +509,10 @@
                     Masuk
                 </button>
 
+                <div class="text-center mt-3">
+                    <a href="#" class="auth-link" id="forgotPassword">Lupa Password?</a>
+                </div>
+
                 <div class="register-wrapper">
                     Belum memiliki akun?
 
@@ -524,6 +528,18 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.getElementById('forgotPassword').addEventListener('click', function (event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Lupa Password?',
+                text: 'Hubungi admin untuk reset password',
+                icon: 'info',
+                confirmButtonColor: '#5c3a16'
+            });
+        });
+    </script>
 
     @if (session('berhasil'))
         <script>

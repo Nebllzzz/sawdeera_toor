@@ -156,7 +156,7 @@
                                         {{ $current->nama_tahap }} sedang diverifikasi admin. Tahap berikutnya akan terbuka
                                         setelah disetujui.</div>
                                 @else
-                                    <form method="POST" action="/pemabayan/upload" enctype="multipart/form-data">
+                                    <form id="paymentUploadForm" method="POST" action="/pemabayan/upload" enctype="multipart/form-data" novalidate>
                                         @csrf<input type="hidden" name="tahap_id" value="{{ $current->id }}">
                                         <div class="current-bill">
                                             <div><small>Tahap yang harus dibayar</small>
@@ -727,7 +727,24 @@
                 window.addEventListener('beforeunload', () => {
                     if (objectUrl) URL.revokeObjectURL(objectUrl);
                 });
+
+                document.getElementById('paymentUploadForm')?.addEventListener('submit', function(event) {
+                    if (!input.files.length) {
+                        event.preventDefault();
+                        Swal.fire('Bukti pembayaran belum dipilih', 'Pilih file bukti pembayaran sebelum mengirim.', 'warning');
+                        return;
+                    }
+                    if (!this.checkValidity()) {
+                        event.preventDefault();
+                        this.reportValidity();
+                        Swal.fire('Data belum lengkap', 'Lengkapi metode dan bukti pembayaran.', 'warning');
+                    }
+                });
             })();
+
+            @if($errors->any())
+                Swal.fire('Pembayaran gagal', @json($errors->first()), 'error');
+            @endif
         </script>
     @endpush
 @endsection
