@@ -80,8 +80,10 @@
 
     </div>
 
-    <div class="modal fade" id="modalUser">
-        <div class="modal-dialog">
+    <div class="modal fade" id="modalUser" tabindex="-1" role="dialog"
+        aria-labelledby="modalTitle" aria-hidden="true">
+
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
 
                 <form id="formUser" method="POST">
@@ -89,53 +91,28 @@
 
                     <div class="modal-header">
                         <h4 class="modal-title" id="modalTitle">Tambah Admin</h4>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+
+                        <button type="button"
+                            class="close btnCloseModal"
+                            aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
 
                     <div class="modal-body">
-
-                        <div class="mb-3">
-                            <label>Nama</label>
-                            <input type="text" name="name" id="name" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Email</label>
-                            <input type="email" name="email" id="email" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Password</label>
-                            <input type="password" name="password" id="password" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Role</label>
-                            <select name="role" id="role" class="form-control">
-                                <option value="admin">Pimpinan</option>
-                                <option value="operator">Admin</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Status</label>
-                            <select name="status" id="status" class="form-control">
-                                <option value="aktif">Aktif</option>
-                                <option value="tidak_aktif">Tidak Aktif</option>
-                            </select>
-                        </div>
-
+                        {{-- Isi form --}}
                     </div>
 
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-sawdeera1">Simpan</button>
-                    </div>
+                        <button type="button"
+                            class="btn btn-secondary btnCloseModal">
+                            Batal
+                        </button>
 
+                        <button type="submit" class="btn btn-sawdeera1">
+                            Simpan
+                        </button>
+                    </div>
                 </form>
 
             </div>
@@ -298,6 +275,18 @@
                         searchable: false
                     }
                 ]
+            });
+
+            $(document).on("click", ".btnCloseModal", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                $("#modalUser").modal("hide");
+            });
+
+            $("#modalUser").on("hidden.bs.modal", function () {
+                $("body").removeClass("modal-open");
+                $(".modal-backdrop").remove();
             });
 
             $(document).on("click", ".deleteUser", function() {
