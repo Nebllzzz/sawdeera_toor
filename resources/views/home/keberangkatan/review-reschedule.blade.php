@@ -70,11 +70,11 @@
                                     <form action="/keberangkatan/reschedule/{{ $reschedule->id }}/approve" method="POST" class="mb-2">
                                         @csrf
                                         <button class="btn btn-success btn-block w-100" onclick="return confirm('Setujui reschedule ini?')">
-                                            <i class="fas fa-check mr-2"></i>Setujui Reschedule
+                                            <i class="fas fa-check mx-2"></i>Setujui Reschedule
                                         </button>
                                     </form>
                                     <button class="btn btn-danger btn-block w-100" data-toggle="modal" data-target="#modalTolak">
-                                        <i class="fas fa-times mr-2"></i>Tolak Reschedule
+                                        <i class="fas fa-times mx-2"></i>Tolak Reschedule
                                     </button>
                                 @else
                                     <p class="text-muted mb-0">Pengajuan ini sudah diproses oleh {{ $reschedule->pemroses?->name ?? '-' }} pada {{ $reschedule->diproses_pada?->translatedFormat('d M Y H:i') ?? '-' }}.</p>

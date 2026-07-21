@@ -22,7 +22,7 @@
                         <h2 class="font-weight-bold mb-1">Status Verifikasi Pendaftaran</h2>
                         <small class="text-muted">Dashboard &nbsp;›&nbsp; Status Verifikasi</small>
                     </div>
-                        <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard</a>
+                        <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mx-2"></i>Kembali ke Dashboard</a>
                 </div>
 
                 <div class="row mt-4">

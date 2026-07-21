@@ -24,7 +24,7 @@
 
                         <button type="button" class="btn btn-sawdeera1" id="btnAddLeader">
 
-                            <i class="fas fa-plus mr-2 text-white"></i>
+                            <i class="fas fa-plus mx-2 text-white"></i>
 
                             Tambah Tour Leader
 

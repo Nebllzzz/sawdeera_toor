@@ -60,7 +60,7 @@
                                         @endif
                                     </div>
                                     <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
-                                        class="open-file"><i class="fas fa-external-link-alt mr-1"></i>Buka dokumen ukuran
+                                        class="open-file"><i class="fas fa-external-link-alt mx-1"></i>Buka dokumen ukuran
                                         penuh</a>
                                     @if ($doc->keterangan_penolakan)
                                         <div class="rejection"><b>Catatan Penolakan</b>

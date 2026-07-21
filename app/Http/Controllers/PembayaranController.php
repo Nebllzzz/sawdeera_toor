@@ -7,6 +7,7 @@ use App\Models\PembayaranTahapan;
 use App\Models\User;
 use App\Notifications\PaymentStatusUpdatedToJemaah;
 use App\Notifications\PaymentUploadedToAdmin;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
@@ -23,6 +24,36 @@ class PembayaranController extends Controller
         ])->where('jemaah_id', $jemaah->id)->whereNotNull('keberangkatan_jemaah_id')->latest()->first() : null;
 
         return view('home.pemabayan.index', compact('pembayaran'));
+    }
+
+    public function downloadInvoice()
+    {
+        abort_unless(auth()->user()->role === 'jemaah', 403);
+
+        $jemaah = auth()->user()->jemaah;
+        $pembayaran = $jemaah ? Pembayaran::with([
+            'jemaah.user', 'tahapan.verifier', 'pengajuan.paketUmrah',
+            'pengajuan.keberangkatan',
+        ])->where('jemaah_id', $jemaah->id)
+            ->whereNotNull('keberangkatan_jemaah_id')
+            ->latest()
+            ->first() : null;
+
+        abort_unless(
+            $pembayaran?->isInvoiceAvailable(),
+            403,
+            'Invoice hanya tersedia setelah seluruh tahap pembayaran diunggah dan diverifikasi lunas.'
+        );
+
+        $invoiceNumber = 'SWD/INV/'.($pembayaran->created_at?->format('Y') ?? now()->format('Y')).'/'.str_pad((string) $pembayaran->id, 6, '0', STR_PAD_LEFT);
+        $paidAt = $pembayaran->tahapan->max('verified_at') ?? $pembayaran->updated_at;
+        $filename = 'invoice-sawdeera-'.str_pad((string) $pembayaran->id, 6, '0', STR_PAD_LEFT).'.pdf';
+
+        return Pdf::loadView('home.pemabayan.invoice', compact(
+            'pembayaran',
+            'invoiceNumber',
+            'paidAt'
+        ))->setPaper('a4')->download($filename);
     }
 
     public function pemabayanUpload(Request $request)
@@ -73,6 +104,7 @@ class PembayaranController extends Controller
     public function pemabayanAdmin()
     {
         abort_unless(in_array(auth()->user()->role, ['admin', 'operator']), 403);
+
         return view('home.pemabayan.admin');
     }
 
@@ -93,6 +125,7 @@ class PembayaranController extends Controller
             ->addColumn('skema', fn ($r) => $this->schemeLabel($r->jenis_pembayaran))
             ->addColumn('progress', function ($r) {
                 $paid = $r->tahapan->where('status', 'diverifikasi')->count();
+
                 return "{$paid}/{$r->jumlah_tahap} tahap";
             })
             ->addColumn('menunggu', fn ($r) => $r->tahapan->where('status', 'diproses')->count())
@@ -109,12 +142,14 @@ class PembayaranController extends Controller
             'jemaah.user', 'pengajuan.paketUmrah.hotelMakkah', 'pengajuan.paketUmrah.hotelMadinah',
             'pengajuan.keberangkatan.maskapaiBerangkat', 'tahapan.verifier',
         ])->findOrFail($id);
+
         return view('home.pemabayan.detail', compact('pembayaran'));
     }
 
     public function pemabayanAdminShow($id)
     {
         abort_unless(in_array(auth()->user()->role, ['admin', 'operator']), 403);
+
         return PembayaranTahapan::with('pembayaran.jemaah.user')->findOrFail($id);
     }
 
@@ -130,7 +165,7 @@ class PembayaranController extends Controller
                 'verified_at' => now(), 'keterangan_penolakan' => null,
             ]);
             $payment = $tahap->pembayaran;
-            $allPaid = !$payment->tahapan()->where('status', '!=', 'diverifikasi')->exists();
+            $allPaid = ! $payment->tahapan()->where('status', '!=', 'diverifikasi')->exists();
             $payment->update(['status' => $allPaid ? 'diverifikasi' : 'belum_bayar']);
         });
 
@@ -181,6 +216,7 @@ class PembayaranController extends Controller
             'diverifikasi' => ['success', 'Lunas'], 'diproses' => ['warning', 'Perlu Verifikasi'],
             'ditolak' => ['danger', 'Perlu Perbaikan'], default => ['secondary', 'Berjalan'],
         };
+
         return "<span class=\"badge badge-{$color}\">{$label}</span>";
     }
 }

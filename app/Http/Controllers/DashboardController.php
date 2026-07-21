@@ -11,6 +11,7 @@ use App\Models\PaketUmrah;
 use App\Models\Pembayaran;
 use App\Models\PembayaranTahapan;
 use App\Models\TourLeader;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,54 @@ class DashboardController extends Controller
         // role detection (admin/operator/jemaah)
         $role = $user->role ?? 'jemaah';
 
-        if (in_array($role, ['admin', 'operator'])) {
+        if ($role === 'admin') {
+            $totalAdmin = User::where('role', 'operator')->count();
+            $totalJemaah = DataJemaah::count();
+            $jadwalAktif = Keberangkatan::where('status', Keberangkatan::STATUS_AKTIF)->count();
+            $menungguApproval = Keberangkatan::where('status', Keberangkatan::STATUS_PENGAJUAN)->count();
+
+            $trendStart = now()->subMonths(5)->startOfMonth();
+            $registrationCounts = DataJemaah::where('created_at', '>=', $trendStart)
+                ->get(['created_at'])
+                ->countBy(fn (DataJemaah $jemaah) => $jemaah->created_at->format('Y-m'));
+            $registrationTrend = collect(range(0, 5))->map(function (int $offset) use ($trendStart, $registrationCounts) {
+                $month = $trendStart->copy()->addMonths($offset);
+
+                return [
+                    'key' => $month->format('Y-m'),
+                    'label' => $month->locale('id')->translatedFormat('M'),
+                    'total' => (int) $registrationCounts->get($month->format('Y-m'), 0),
+                ];
+            });
+
+            $jemaahMonitoring = [
+                'terverifikasi' => DataJemaah::where('status_data', 'terverifikasi')->count(),
+                'belum_verifikasi' => DataJemaah::where(fn ($query) => $query
+                    ->whereNull('status_data')
+                    ->orWhere('status_data', 'belum_lengkap'))->count(),
+                'ditolak' => DataJemaah::where('status_data', 'perlu_perbaikan')->count(),
+                'diproses' => DataJemaah::where('status_data', 'menunggu_verifikasi')->count(),
+            ];
+
+            $approvalSchedules = Keberangkatan::with('paket')
+                ->withCount(['jemaah' => fn ($query) => $query->whereIn('status', KeberangkatanJemaah::STATUSES)])
+                ->where('status', Keberangkatan::STATUS_PENGAJUAN)
+                ->latest('updated_at')
+                ->limit(5)
+                ->get();
+
+            return view('dashboard.pimpinan', compact(
+                'totalAdmin',
+                'totalJemaah',
+                'jadwalAktif',
+                'menungguApproval',
+                'registrationTrend',
+                'jemaahMonitoring',
+                'approvalSchedules',
+            ));
+        }
+
+        if ($role === 'operator') {
             // ADMIN / OPERATOR DASHBOARD DATA
             $totalJemaah = DataJemaah::count();
             $totalPaket = PaketUmrah::count();
@@ -37,13 +85,13 @@ class DashboardController extends Controller
             $dokumenPending = DokumenJemaah::where('status', 'diproses')->count();
 
             // charts: pembayaran per month (last 6 months)
-            $pembayaranPerMonth = PembayaranTahapan::selectRaw("DATE_FORMAT(verified_at, '%Y-%m') as ym, SUM(nominal) as total")
+            $pembayaranPerMonth = PembayaranTahapan::query()
                 ->where('status', 'diverifikasi')
                 ->where('verified_at', '>=', now()->subMonths(6))
-                ->groupBy('ym')
-                ->orderBy('ym')
-                ->get()
-                ->mapWithKeys(fn ($r) => [$r->ym => (float) $r->total]);
+                ->get(['verified_at', 'nominal'])
+                ->groupBy(fn (PembayaranTahapan $tahap) => $tahap->verified_at?->format('Y-m'))
+                ->filter(fn ($items, $month) => filled($month))
+                ->map(fn ($items) => (float) $items->sum('nominal'));
 
             // status dokumen breakdown
             $dokumenStatus = DokumenJemaah::selectRaw('status, count(*) as c')

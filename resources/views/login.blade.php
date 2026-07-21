@@ -532,11 +532,45 @@
     <script>
         document.getElementById('forgotPassword').addEventListener('click', function (event) {
             event.preventDefault();
+
+            const adminWhatsApp = '62895600791616';
+            const message = 'Saya%20ingin%20reset%20password%20akun%20saya';
+            const whatsappUrl = `https://wa.me/${adminWhatsApp}?text=${message}`;
+
             Swal.fire({
                 title: 'Lupa Password?',
-                text: 'Hubungi admin untuk reset password',
+                html: `
+                    <p style="margin-bottom: 15px;">Hubungi admin untuk reset password melalui WhatsApp</p>
+                    <a href="${whatsappUrl}"
+                    target="_blank"
+                    style="
+                        display: inline-block;
+                        background: #25D366;
+                        color: white;
+                        padding: 12px 30px;
+                        border-radius: 50px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+                    "
+                    onmouseover="this.style.transform='scale(1.05)'"
+                    onmouseout="this.style.transform='scale(1)'"
+                    >
+                        <i class="fab fa-whatsapp" style="margin-right: 10px;"></i>
+                        Hubungi Admin via WhatsApp
+                    </a>
+                    <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                        Atau klik <a href="${whatsappUrl}" target="_blank" style="color: #25D366;">di sini</a> jika tombol tidak berfungsi
+                    </p>
+                `,
                 icon: 'info',
-                confirmButtonColor: '#5c3a16'
+                showConfirmButton: true,
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#5c3a16',
+                showCancelButton: false,
+                allowOutsideClick: true
             });
         });
     </script>

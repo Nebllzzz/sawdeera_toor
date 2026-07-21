@@ -27,7 +27,7 @@
                         @if($notifications->count())
                             <form action="{{ route('notifications.readAll') }}" method="POST" style="display:inline">
                                 @csrf
-                                <button class="btn btn-sm btn-primary"><i class="fas fa-check-double mr-1"></i>Tandai Semua Dibaca</button>
+                                <button class="btn btn-sm btn-primary"><i class="fas fa-check-double mx-1"></i>Tandai Semua Dibaca</button>
                             </form>
                         @endif
                     </div>
@@ -62,7 +62,7 @@
                                             <button class="btn btn-sm btn-success">Tandai Dibaca</button>
                                         </form>
                                     @else
-                                        <span class="notif-status"><i class="fas fa-check mr-1"></i>Dibaca</span>
+                                        <span class="notif-status"><i class="fas fa-check mx-1"></i>Dibaca</span>
                                     @endif
                                 </div>
                             </div>

@@ -420,7 +420,7 @@
                 </span>
 
                 <span class="menu-title">
-                    Approval Jadwal Keberangkatan
+                    Kelola Jadwal Keberangkatan
                 </span>
             </a>
         </div>

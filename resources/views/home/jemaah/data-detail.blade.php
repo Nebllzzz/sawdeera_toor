@@ -62,7 +62,7 @@
                             </div>
                             <div class="card-body">
                                 @if($j->status_data === 'terverifikasi')
-                                    <div class="alert alert-success mb-0"><i class="fas fa-lock mr-2"></i>Data sudah terverifikasi dan seluruh aksi dikunci.</div>
+                                    <div class="alert alert-success mb-0"><i class="fas fa-lock mx-2"></i>Data sudah terverifikasi dan seluruh aksi dikunci.</div>
                                 @else
                                     <button class="btn btn-success btn-block mb-2 status-data w-100"
                                         data-status="terverifikasi">Verifikasi Data

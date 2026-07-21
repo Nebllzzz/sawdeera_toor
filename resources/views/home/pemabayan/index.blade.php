@@ -7,6 +7,7 @@
         $remaining = max(0, $total - $paid);
         $progress = $total > 0 ? round(($paid / $total) * 100) : 0;
         $current = $pembayaran?->tahapan->first(fn($t) => $t->status !== 'diverifikasi');
+        $invoiceAvailable = $pembayaran?->isInvoiceAvailable() ?? false;
         $schemeLabels = [
             'sekali_bayar' => 'Satu Kali Bayar',
             'cicilan_3_bulan' => '3 Kali Cicilan',
@@ -230,6 +231,12 @@
                                 <div class="progress">
                                     <div style="width:{{ $progress }}%"></div>
                                 </div>
+                                @if ($invoiceAvailable)
+                                    <a href="{{ route('jemaah.invoice') }}" class="btn-download-invoice mt-4">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span><b>Download Invoice</b><small>Kwitansi pembayaran lunas</small></span>
+                                    </a>
+                                @endif
                             </div>
                             <div class="side-card">
                                 <h6>Jadwal Pembayaran</h6>
@@ -607,6 +614,34 @@
 
         .progress>div {
             background: #bb7f1e
+        }
+
+        .btn-download-invoice {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: #fff !important;
+            background: linear-gradient(135deg, #b77a1d, #8b5914);
+            text-decoration: none !important;
+            box-shadow: 0 7px 16px rgba(139, 89, 20, .2);
+        }
+
+        .btn-download-invoice i {
+            font-size: 22px;
+        }
+
+        .btn-download-invoice span,
+        .btn-download-invoice small {
+            display: block;
+        }
+
+        .btn-download-invoice small {
+            color: #f7e5bd;
+            font-size: 10px;
         }
 
         .mini-timeline {

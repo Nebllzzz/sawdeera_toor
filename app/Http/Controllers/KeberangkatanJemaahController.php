@@ -354,6 +354,7 @@ class KeberangkatanJemaahController extends Controller
         $jemaah = auth()->user()->jemaah;
 
         return $jemaah ? KeberangkatanJemaah::with([
+            'jemaah.dokumen',
             'keberangkatan.maskapaiBerangkat', 'keberangkatan.maskapaiPulang',
             'keberangkatan.leader', 'paketUmrah.hotelMakkah', 'paketUmrah.hotelMadinah',
             'paketUmrah.fasilitas', 'paketUmrah.program', 'pembayaran.tahapan',
@@ -374,6 +375,9 @@ class KeberangkatanJemaahController extends Controller
     {
         abort_unless(in_array($pengajuan->status, [KeberangkatanJemaah::STATUS_PENDAFTARAN, KeberangkatanJemaah::STATUS_SETUJU], true), 422, 'Status pengajuan tidak dapat mengajukan perubahan.');
         abort_unless($pengajuan->keberangkatan, 422, 'Jadwal keberangkatan tidak ditemukan.');
+        abort_unless($pengajuan->jemaah?->status_data === 'terverifikasi', 422, 'Data diri harus terverifikasi sebelum mengajukan reschedule.');
+        abort_unless($pengajuan->jemaah?->hasVerifiedRequiredDocuments(), 422, 'Seluruh dokumen wajib harus terverifikasi sebelum mengajukan reschedule.');
+        abort_unless($pengajuan->pembayaran?->isFullyVerified(), 422, 'Seluruh tahap pembayaran harus terverifikasi sebelum mengajukan reschedule.');
         abort_if($pengajuan->reschedules()->where('status', KeberangkatanJemaahReschedule::STATUS_MENUNGGU)->exists(), 422, 'Masih ada pengajuan reschedule yang menunggu.');
         $days = today()->diffInDays($pengajuan->keberangkatan->tanggal_keberangkatan, false);
         abort_unless($days >= 45, 422, 'Batas pengajuan perubahan minimal H-45 sebelum keberangkatan sudah lewat.');

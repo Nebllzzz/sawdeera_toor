@@ -45,4 +45,15 @@ class Pembayaran extends Model
 
         return $steps->isNotEmpty() && $steps->every(fn ($step) => $step->status === 'diverifikasi');
     }
+
+    public function isInvoiceAvailable(): bool
+    {
+        $steps = $this->relationLoaded('tahapan') ? $this->tahapan : $this->tahapan()->get();
+
+        return $this->status === 'diverifikasi'
+            && $steps->count() === (int) $this->jumlah_tahap
+            && $steps->every(fn ($step) => $step->status === 'diverifikasi'
+                && filled($step->bukti_pembayaran)
+                && filled($step->uploaded_at));
+    }
 }

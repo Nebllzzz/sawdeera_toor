@@ -425,7 +425,7 @@
                 ${row('Paket Umrah',d.paket)}${row('Keberangkatan',d.keberangkatan)}${row('Maskapai',d.maskapai)}${row('Hotel Makkah',d.hotel_makkah)}${row('Hotel Madinah',d.hotel_madinah)}${row('Tour Guide',d.tour_guide)}${row('Kuota Paket',d.kuota)}
                 <div class="mt-2"><small>Progress</small><div class="progress" style="height:8px"><div class="progress-bar bg-success" style="width:${d.progress}%"></div></div></div>
                 <h6 class="mt-4">Progress Pendaftaran</h6><div class="timeline-mini">${d.timeline.map(t=>`<div class="timeline-mini-item"><b>${t.label}</b><small>${t.status}${t.date?' · '+t.date:''}</small></div>`).join('')}</div>
-                <button class="export-detail mt-3" onclick="window.location='/laporan/jemaah/export/excel'"><i class="far fa-file-excel mr-2"></i>Unduh Excel</button>
+                <button class="export-detail mt-3" onclick="window.location='/laporan/jemaah/export/excel'"><i class="far fa-file-excel mx-2"></i>Unduh Excel</button>
             `);
                     $('#detailModal').modal('show');
                 });

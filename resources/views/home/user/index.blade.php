@@ -14,7 +14,7 @@
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h2 class="mb-0">Data Admin</h2>
                                 <button class="btn btn-sawdeera1" id="btnTambahUser">
-                                    <i class="fas fa-plus mr-2 text-white"></i>Tambah Data
+                                    <i class="fas fa-plus mx-2 text-white"></i>Tambah Data
                                 </button>
                             </div>
                             <div class="card-body">

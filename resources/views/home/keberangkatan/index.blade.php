@@ -19,7 +19,7 @@
 
                         @if(auth()->user()->role === 'operator')
                             <button class="btn btn-sawdeera1" onclick="createKeberangkatan()">
-                                <i class="fas fa-plus mr-2 text-white"></i>Tambah Jadwal
+                                <i class="fas fa-plus mx-2 text-white"></i>Tambah Jadwal
                             </button>
                         @endif
                     </div>

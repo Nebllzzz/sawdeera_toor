@@ -34,7 +34,7 @@
                         <h2 class="font-weight-bold mb-1">Pendaftaran Saya</h2>
                         <small class="text-muted">Dashboard &nbsp;›&nbsp; Pendaftaran Saya</small>
                     </div>
-                    <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali ke
+                    <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mx-2"></i>Kembali ke
                         Dashboard</a>
                 </div>
 
@@ -135,7 +135,7 @@
                                         @if ($status !== 'terverifikasi')
                                             <div class="text-right pt-3 border-top">
                                                 <button class="btn btn-save px-4" @disabled($status === 'menunggu_verifikasi' || !$hasDeparture)>
-                                                    <i class="fas fa-save mr-2"></i>
+                                                    <i class="fas fa-save mx-2"></i>
                                                     {{ $status === 'menunggu_verifikasi' ? 'Menunggu Verifikasi' : 'Simpan Perubahan' }}
                                                 </button>
                                             </div>
@@ -150,7 +150,7 @@
                                     <div class="help-card">
 
                                         <h6>
-                                            <i class="fas fa-info-circle mr-2"></i>
+                                            <i class="fas fa-info-circle mx-2"></i>
                                             Panduan Pengisian
                                         </h6>
 
@@ -165,7 +165,7 @@
                                     <div class="help-card">
 
                                         <h6>
-                                            <i class="fas fa-headset mr-2"></i>
+                                            <i class="fas fa-headset mx-2"></i>
                                             Butuh Bantuan?
                                         </h6>
 

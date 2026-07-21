@@ -13,15 +13,74 @@
                         <small class="text-muted">Dashboard &nbsp;›&nbsp;
                             {{ $isPackagePage ? 'Paket Umrah' : 'Keberangkatan Saya' }}</small>
                     </div>
-                    <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali ke
+                    <a href="/dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mx-2"></i>Kembali ke
                         Dashboard</a>
                 </div>
 
                 @if (!$isPackagePage && $pengajuan)
                     @php
+                        $internalStatus = $pengajuan->keberangkatan?->status;
+                        $publicApprovalLabel = in_array($internalStatus, ['pengajuan', 'direvisi'], true)
+                            ? 'Dalam Pengajuan'
+                            : ($pengajuan->status === 'setuju'
+                                ? 'Jadwal Berlaku'
+                                : ($pengajuan->status === 'reschedule'
+                                    ? 'Pengajuan Perubahan'
+                                    : 'Jadwal Berlaku'));
+                        $departureLabels = [
+                            'draft' => 'Draft',
+                            'aktif' => 'Jadwal Aktif',
+                            'pengajuan' => 'Dalam Pengajuan',
+                            'direvisi' => 'Dalam Pengajuan',
+                            'disetujui' => 'Jadwal Disetujui',
+                            'berangkat' => 'Berangkat',
+                            'berlangsung' => 'Sedang Berlangsung',
+                            'pulang' => 'Perjalanan Pulang',
+                            'selesai' => 'Selesai',
+                        ];
+                        $daysToDeparture = today()->diffInDays($pengajuan->keberangkatan->tanggal_keberangkatan, false);
+                        $verificationComplete =
+                            $pengajuan->jemaah?->status_data === 'terverifikasi' &&
+                            $pengajuan->jemaah?->hasVerifiedRequiredDocuments() &&
+                            $pengajuan->pembayaran?->isFullyVerified();
+                        $canRequestChange =
+                            $verificationComplete &&
+                            $daysToDeparture >= 45 &&
+                            in_array($pengajuan->status, ['pendaftaran', 'setuju'], true);
+                    @endphp
+                    <div class="schedule-response-card mb-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <small>Status Pengajuan Jadwal</small>
+                                <h5>{{ $publicApprovalLabel }}</h5>
+                                @if ($pengajuan->pendingReschedule)
+                                    <p class="mb-0 text-muted">Perubahan menuju
+                                        {{ $pengajuan->pendingReschedule->keberangkatanTujuan?->kode_keberangkatan }}
+                                        sedang menunggu review admin.</p>
+                                @else
+                                    <p class="mb-0 text-muted">Jadwal ini otomatis berlaku setelah pengajuan paket berhasil.</p>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <small>Status Keberangkatan</small>
+                                <h5>{{ $departureLabels[$internalStatus] ?? ucfirst($internalStatus ?? '-') }}</h5>
+                            </div>
+                        </div>
+
+                        @if (in_array($internalStatus, ['aktif', 'disetujui', 'berangkat'], true))
+                            <hr>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                @if ($canRequestChange)
+                                    <button class="btn btn-warning mb-2" id="btnOpenReschedule"><i
+                                            class="fas fa-exchange-alt mx-2"></i>Reschedule</button>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                    @php
                         $p = $pengajuan->paketUmrah;
                     @endphp
-                    <div class="selected-trip mb-3">
+                    <div class="selected-trip mt-4">
                         <div class="selected-cover" style="background-image:url('{{ asset('img/thumb1.jpg') }}')">
                             <span class="selected-duration">{{ $p->durasi }} Hari</span>
                         </div>
@@ -77,65 +136,8 @@
                             @endforelse
                         </div>
                     </div>
-                    @php
-                        $internalStatus = $pengajuan->keberangkatan?->status;
-                        $publicApprovalLabel = in_array($internalStatus, ['pengajuan', 'direvisi'], true)
-                            ? 'Dalam Pengajuan'
-                            : ($pengajuan->status === 'setuju'
-                                ? 'Jadwal Berlaku'
-                                : ($pengajuan->status === 'reschedule'
-                                    ? 'Pengajuan Perubahan'
-                                    : 'Jadwal Berlaku'));
-                        $departureLabels = [
-                            'draft' => 'Draft',
-                            'aktif' => 'Jadwal Aktif',
-                            'pengajuan' => 'Dalam Pengajuan',
-                            'direvisi' => 'Dalam Pengajuan',
-                            'disetujui' => 'Jadwal Disetujui',
-                            'berangkat' => 'Berangkat',
-                            'berlangsung' => 'Sedang Berlangsung',
-                            'pulang' => 'Perjalanan Pulang',
-                            'selesai' => 'Selesai',
-                        ];
-                        $daysToDeparture = today()->diffInDays($pengajuan->keberangkatan->tanggal_keberangkatan, false);
-                        $canRequestChange =
-                            $daysToDeparture >= 45 && in_array($pengajuan->status, ['pendaftaran', 'setuju'], true);
-                    @endphp
-                    <div class="schedule-response-card mt-4">
-                        <div class="row">
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <small>Status Pengajuan Jadwal</small>
-                                <h5>{{ $publicApprovalLabel }}</h5>
-                                @if ($pengajuan->pendingReschedule)
-                                    <p class="mb-0 text-muted">Perubahan menuju
-                                        {{ $pengajuan->pendingReschedule->keberangkatanTujuan?->kode_keberangkatan }}
-                                        sedang menunggu review admin.</p>
-                                @else
-                                    <p class="mb-0 text-muted">Jadwal ini otomatis berlaku setelah pengajuan paket berhasil.</p>
-                                @endif
-                            </div>
-                            <div class="col-md-6">
-                                <small>Status Keberangkatan</small>
-                                <h5>{{ $departureLabels[$internalStatus] ?? ucfirst($internalStatus ?? '-') }}</h5>
-                                <p class="mb-0 text-muted">Informasi jadwal ditampilkan dalam bahasa yang mudah dipahami
-                                    jemaah.</p>
-                            </div>
-                        </div>
-
-                        @if (in_array($internalStatus, ['aktif', 'disetujui', 'berangkat'], true))
-                            <hr>
-                            <div class="d-flex flex-wrap gap-2 mt-3">
-                                @if ($canRequestChange)
-                                    <button class="btn btn-warning mb-2" id="btnOpenReschedule"><i
-                                            class="fas fa-exchange-alt mr-2"></i>Reschedule</button>
-                                @else
-                                    <button class="btn btn-warning mb-2" disabled><i class="fas fa-exchange-alt mr-2"></i>Reschedule</button>
-                                @endif
-                            </div>
-                        @endif
-                    </div>
                     <div class="notes-card mt-4">
-                        <h5><i class="fas fa-sticky-note mr-2"></i>Notes</h5>
+                        <h5><i class="fas fa-sticky-note mx-2"></i>Notes</h5>
                         <ul class="mb-0">
                             <li>Batas pengajuan perubahan minimal H-45 sebelum berangkat.</li>
                             <li>Harap hadir di titik keberangkatan minimal 3 jam sebelum jadwal.</li>
@@ -175,7 +177,7 @@
                                     <option value="over_35" @selected(request('harga') === 'over_35')>Di atas Rp35 juta</option>
                                 </select></div>
                             <div class="col-lg-2"><button class="btn-filter w-100"><i
-                                        class="fas fa-filter mr-2"></i>Filter</button></div>
+                                        class="fas fa-filter mx-2"></i>Filter</button></div>
                         </div>
                     </form>
 
@@ -254,12 +256,12 @@
                             </div>
                             <h6>Deskripsi</h6>
                             <p id="detailDescription" class="text-muted"></p>
+                            <h6 >Keberangkatan Tersedia</h6>
+                            <div id="detailSchedules" class="mt-4"></div>
                             <h6>Fasilitas</h6>
                             <div id="detailFacilities" class="chip-list"></div>
                             <h6 class="mt-4">Program Perjalanan</h6>
                             <div id="detailPrograms"></div>
-                            <h6 class="mt-4">Keberangkatan Tersedia</h6>
-                            <div id="detailSchedules"></div>
                         </div>
                         <div class="col-lg-5">
                             <div class="apply-box"><small>Harga per jemaah</small>
@@ -925,7 +927,7 @@
                                 <div><small>Kontak Tour Leader</small><br><b>${safe(k.leader ? ((k.leader.no_telepon || '-') + ' / ' + (k.leader.email || '-')) : '-')}</b></div>
                             </div>
                         </div>`).join('') :
-                        '<div class="schedule-empty"><i class="fas fa-info-circle mr-2"></i>Belum ada jadwal keberangkatan yang tersedia untuk durasi paket ini.</div>'
+                        '<div class="schedule-empty"><i class="fas fa-info-circle mx-2"></i>Belum ada jadwal keberangkatan yang tersedia untuk durasi paket ini.</div>'
                         );
                     if (!res.can_apply) {
                         $('#openApply').addClass('d-none');

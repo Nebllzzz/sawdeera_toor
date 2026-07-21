@@ -74,14 +74,14 @@
                             <div class="card-header d-flex justify-content-between align-items-center"><h3 class="mb-0">Aksi</h3></div>
                             <div class="card-body">
                                 @if($canEdit)
-                                    <button class="btn btn-primary btn-block mb-2 w-100" onclick="openEdit()"><i class="fas fa-pen mr-2"></i>Edit Jadwal</button>
+                                    <button class="btn btn-primary btn-block mb-2 w-100" onclick="openEdit()"><i class="fas fa-pen mx-2"></i>Edit Jadwal</button>
                                 @endif
                                 @if($canDelete)
-                                    <button class="btn btn-danger btn-block mb-2 w-100" onclick="deleteSchedule()"><i class="fas fa-trash mr-2"></i>Hapus Jadwal</button>
+                                    <button class="btn btn-danger btn-block mb-2 w-100" onclick="deleteSchedule()"><i class="fas fa-trash mx-2"></i>Hapus Jadwal</button>
                                 @endif
                                 @forelse($actions as $action)
                                     @if($action === 'revise')
-                                        <button class="btn btn-warning btn-block mb-2 w-100" data-toggle="modal" data-target="#modalRevisi"><i class="fas fa-comment-dots mr-2"></i>Minta Revisi</button>
+                                        <button class="btn btn-warning btn-block mb-2 w-100" data-toggle="modal" data-target="#modalRevisi"><i class="fas fa-comment-dots mx-2"></i>Minta Revisi</button>
                                     @elseif($action === 'submit' && $keberangkatan->ready_jemaah_count < $keberangkatan->kuota)
                                         <button class="btn btn-success btn-block mb-2 w-100" disabled title="Kuota jemaah terverifikasi belum penuh">
                                             {{ app(\App\Services\KeberangkatanStatusService::class)->actionLabel($action) }}

@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
 
     // pemabayan (pembayaran)
     Route::get('/pemabayan', [PembayaranController::class, 'pemabayanIndex']);
+    Route::get('/pemabayan/invoice', [PembayaranController::class, 'downloadInvoice'])->name('jemaah.invoice');
     Route::post('/pemabayan/upload', [PembayaranController::class, 'pemabayanUpload']);
 
     // notifications
