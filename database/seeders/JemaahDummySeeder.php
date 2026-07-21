@@ -39,15 +39,23 @@ class JemaahDummySeeder extends Seeder
             'Lina Marlina', 'Taufik Hidayat', 'Sari Dewi', 'Irfan Maulana', 'Nina Anjani'
         ];
 
-        $startDate = Carbon::now()->subDays(30);
+        // Nomor telepon awal
+        $basePhone = '0812345678';
 
         foreach ($names as $index => $name) {
             $number = $index + 1;
             $email = 'jemaah' . str_pad((string) $number, 2, '0', STR_PAD_LEFT) . '@gmail.com';
 
-            $randomDays = rand(0, 30);
-            $createdAt = $startDate->copy()->addDays($randomDays);
-            $updatedAt = $createdAt->copy()->addHours(rand(1, 72));
+            // Nomor telepon berurutan: 08123456701, 08123456702, dst
+            $phoneNumber = '081234567' . str_pad((string) $number, 2, '0', STR_PAD_LEFT);
+
+            // Tanggal berurutan: jemaah01 = 30 hari lalu, jemaah30 = hari ini
+            // Setiap jemaah selisih 1 hari
+            $daysAgo = 30 - $number; // jemaah01: 29, jemaah30: 0
+            $createdAt = Carbon::now()->subDays($daysAgo)->startOfDay()->addHours(rand(8, 17));
+
+            // updated_at = created_at + beberapa jam (1-12 jam kemudian)
+            $updatedAt = $createdAt->copy()->addHours(rand(1, 12));
 
             User::create([
                 'name' => $name,
@@ -59,9 +67,17 @@ class JemaahDummySeeder extends Seeder
                 'created_at' => $createdAt,
                 'updated_at' => $updatedAt,
             ]);
+
+            $this->command?->info("✅ Jemaah {$number}: {$name} - {$email} - Telp: {$phoneNumber} - Created: {$createdAt->format('Y-m-d H:i')}");
         }
 
-        $this->command?->info('✅ Berhasil membuat 30 user jemaah baru!');
-        $this->command?->info("📅 Rentang created_at: " . User::where('email', 'jemaah01@gmail.com')->first()->created_at . " sampai " . User::where('email', 'jemaah30@gmail.com')->first()->created_at);
+        $this->command?->info('✅ Berhasil membuat 30 user jemaah baru dengan nomor telepon!');
+
+        // Tampilkan ringkasan
+        $firstUser = User::where('email', 'jemaah01@gmail.com')->first();
+        $lastUser = User::where('email', 'jemaah30@gmail.com')->first();
+
+        $this->command?->info("📅 Rentang created_at: {$firstUser->created_at} sampai {$lastUser->created_at}");
+        $this->command?->info("📱 Nomor telepon: 08123456701 sampai 08123456730");
     }
 }
