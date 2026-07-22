@@ -21,7 +21,6 @@ class JemaahRecapController extends Controller
 
     public function index()
     {
-        $this->ensureAdmin();
 
         return view('home.rekapitulasi-jemaah.index', [
             'reportTypes' => JemaahRecapService::reportTypes(),
@@ -33,7 +32,6 @@ class JemaahRecapController extends Controller
 
     public function data(Request $request)
     {
-        $this->ensureAdmin();
         [$type, $packageId, $start, $end] = $this->filters($request);
 
         return response()->json($this->recapService->build($type, $packageId, $start, $end));
@@ -41,7 +39,6 @@ class JemaahRecapController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $this->ensureAdmin();
         [$type, $packageId, $start, $end] = $this->filters($request);
         $report = $this->recapService->build($type, $packageId, $start, $end);
 
@@ -109,7 +106,6 @@ class JemaahRecapController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $this->ensureAdmin();
         [$type, $packageId, $start, $end] = $this->filters($request);
         $report = $this->recapService->build($type, $packageId, $start, $end);
         $report['generated_at'] = now()->format('d/m/Y H:i').' WIB';
@@ -157,10 +153,5 @@ class JemaahRecapController extends Controller
         if ($numberFormat) {
             $sheet->getStyle($coordinate)->getNumberFormat()->setFormatCode($numberFormat);
         }
-    }
-
-    private function ensureAdmin(): void
-    {
-        abort_unless(auth()->user()?->role === 'admin', 403);
     }
 }
